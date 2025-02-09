@@ -31,7 +31,7 @@ class ProtosetParser:
             return []
 
     @staticmethod
-    #TODO this method is really messy. See if it can be cleaned up. 
+    # TODO this method is really messy. See if it can be cleaned up.
     # Also check to see if it's possible to only return one thing, and not a list or Any.
     def get_method_request_fields(protoset_path, call_name):
         """
@@ -177,6 +177,7 @@ class GrpcCallApp(tk.Tk):
         self.geometry("900x600")
         self.is_history_selected = False
         self.selected_call_index = None  # Track the index of the currently selected call
+        self.saved_body = None  # Holds JSON data for dynamic fields when loading a saved call
 
         # Variables for input fields
         self.port_forward_var = tk.StringVar()
@@ -189,6 +190,8 @@ class GrpcCallApp(tk.Tk):
 
         # Update Call Name dropdown when protoset path changes.
         self.protoset_var.trace_add("write", self.on_protoset_change)
+        # Update dynamic fields whenever there is text in the Method drop down.
+        self.call_var.trace_add("write", lambda *args: self.on_method_select())
 
         # Load history using SavedCallsManager
         self.calls_history = self.saved_calls_manager.load_saved_calls()
@@ -289,11 +292,17 @@ class GrpcCallApp(tk.Tk):
         )
         plaintext_checkbox.grid(row=6, column=1, sticky=tk.W, pady=5)
 
+        # Saved Calls Listbox
+        saved_call_frame = ttk.Frame(self.content_frame)
+        saved_call_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        ttk.Label(saved_call_frame, text="Saved Calls:").pack(anchor=tk.W)
+        self.saved_call_list_box = tk.Listbox(saved_call_frame, height=6)
+        self.saved_call_list_box.pack(fill=tk.X, pady=5)
+        self.saved_call_list_box.bind("<<ListboxSelect>>", self.on_saved_call_select)
+
         # Frame for dynamic Body input fields
         self.body_fields_frame = ttk.Frame(self.content_frame)
         self.body_fields_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        # (The previous Text widget for Body has been removed in favor of dynamic field entries.)
 
         # Frame for action buttons
         button_frame = ttk.Frame(self.content_frame)
@@ -304,14 +313,6 @@ class GrpcCallApp(tk.Tk):
         save_button.pack(side=tk.LEFT, padx=(0, 10))
         edit_button = ttk.Button(button_frame, text="Edit Call", command=self.edit_current_call)
         edit_button.pack(side=tk.LEFT)
-
-        # Saved Calls Listbox
-        saved_call_frame = ttk.Frame(self.content_frame)
-        saved_call_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        ttk.Label(saved_call_frame, text="Saved Calls:").pack(anchor=tk.W)
-        self.saved_call_list_box = tk.Listbox(saved_call_frame, height=6)
-        self.saved_call_list_box.pack(fill=tk.X, pady=5)
-        self.saved_call_list_box.bind("<<ListboxSelect>>", self.on_saved_call_select)
 
         # Populate history listbox with saved calls
         for call_info in self.calls_history:
@@ -347,7 +348,7 @@ class GrpcCallApp(tk.Tk):
 
     def on_method_select(self, event=None):
         """
-        When a method is selected, dynamically create input fields for each
+        When a method is selected or the Method text changes, dynamically create input fields for each
         field in the method's request message (based on the protoset) using grid.
         """
         # Clear any previous body field entries.
@@ -371,6 +372,13 @@ class GrpcCallApp(tk.Tk):
                 entry.grid(row=row, column=1, sticky=tk.W, pady=2)
                 self.dynamic_body_fields[field_name] = entry
 
+        # Populate dynamic fields with saved body values (if available).
+        if self.saved_body:
+            for key, value in self.saved_body.items():
+                if key in self.dynamic_body_fields:
+                    self.dynamic_body_fields[key].delete(0, tk.END)
+                    self.dynamic_body_fields[key].insert(0, value)
+            self.saved_body = None
 
     def make_grpc_call(self):
         """
@@ -419,10 +427,17 @@ class GrpcCallApp(tk.Tk):
 
     def save_current_call(self):
         """
-        Collects the current call information and delegates saving it to the SavedCallsManager.
-        The UI history listbox is then updated.
+        Collects the current call information—including the JSON body built from the dynamic fields—
+        and delegates saving it to the SavedCallsManager. The UI history listbox is then updated.
         """
-        # For now, we still store the body as a whole JSON string.
+        # Build the body from dynamic fields.
+        body_dict = {}
+        if hasattr(self, 'dynamic_body_fields') and self.dynamic_body_fields:
+            for field_name, entry in self.dynamic_body_fields.items():
+                body_dict[field_name] = entry.get().strip()
+            body = json.dumps(body_dict)
+        else:
+            body = ""
         current_call_info = {
             "port_forward": self.port_forward_var.get().strip(),
             "cookie": self.cookie_var.get().strip(),
@@ -430,15 +445,15 @@ class GrpcCallApp(tk.Tk):
             "protoset": self.protoset_var.get().strip(),
             "server": self.server_var.get().strip(),
             "call": self.call_var.get().strip(),
-            "body": ""  # Out of scope: saving the dynamic fields for now.
+            "body": body
         }
         self.saved_calls_manager.append_call(current_call_info)
         self.saved_call_list_box.insert(tk.END, self.saved_calls_manager.get_display_text(current_call_info))
 
     def edit_current_call(self):
         """
-        If a saved call is selected, update its information based on the current UI field values.
-        The saved_calls.json file is updated and the history listbox reflects the new display text.
+        If a saved call is selected, update its information (including the JSON body built from dynamic fields)
+        based on the current UI field values. The saved_calls.json file is updated and the history listbox reflects the new display text.
         """
         if self.saved_call_list_box.curselection():
             index = self.saved_call_list_box.curselection()[0]
@@ -446,6 +461,15 @@ class GrpcCallApp(tk.Tk):
             self.output_text.insert(tk.END, "No saved call selected to edit.\n")
             return
 
+        # Build the body from dynamic fields.
+        body_dict = {}
+        if hasattr(self, 'dynamic_body_fields') and self.dynamic_body_fields:
+            for field_name, entry in self.dynamic_body_fields.items():
+                body_dict[field_name] = entry.get().strip()
+            body = json.dumps(body_dict)
+        else:
+            body = ""
+
         current_call_info = {
             "port_forward": self.port_forward_var.get().strip(),
             "cookie": self.cookie_var.get().strip(),
@@ -453,7 +477,7 @@ class GrpcCallApp(tk.Tk):
             "protoset": self.protoset_var.get().strip(),
             "server": self.server_var.get().strip(),
             "call": self.call_var.get().strip(),
-            "body": ""  # Out of scope: saving the dynamic fields for now.
+            "body": body
         }
         try:
             self.saved_calls_manager.update_call(index, current_call_info)
@@ -466,7 +490,8 @@ class GrpcCallApp(tk.Tk):
 
     def on_saved_call_select(self, event):
         """
-        When a saved call item is selected, load its details into the input fields.
+        When a saved call item is selected, load its details into the input fields,
+        including restoring the dynamic body field values from the saved JSON.
         """
         selection = self.saved_call_list_box.curselection()
         if not selection:
@@ -482,7 +507,15 @@ class GrpcCallApp(tk.Tk):
         self.protoset_var.set(call_info.get("protoset", ""))
         self.server_var.set(call_info.get("server", ""))
         self.call_var.set(call_info.get("call", ""))
-        # Note: Dynamic body field values are not restored at this time.
+        # Parse and store the saved body JSON data so that on_method_select can populate dynamic fields.
+        body_str = call_info.get("body", "")
+        if body_str:
+            try:
+                self.saved_body = json.loads(body_str)
+            except Exception:
+                self.saved_body = None
+        else:
+            self.saved_body = None
 
 def main():
     HISTORY_FILE = "/Users/joshansen/repo/vivint/grpcs/nest-grpcs/saved_calls.json"

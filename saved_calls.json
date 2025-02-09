@@ -1,0 +1,20 @@
+[
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2pvc2hhbnNlbi5wbGF0Zm9ybS52aXZpbnQuY29tLyIsInN1YiI6IjY3OGZmZjE0Zjg3MzExNzAyZDkyNGVlMSIsImF1ZCI6Imh0dHBzOi8vam9zaGFuc2VuLnBsYXRmb3JtLnZpdmludC5jb20vIiwiZXhwIjoxNzM5MTQxOTYxLCJpYXQiOjE3MzkxMzgzNjEsInNjb3BlIjpbImVtYWlsIiwib3BlbmlkIl0sImF6cCI6InFnWUNhNGVzSk1SbnA3SlpYVWgyNDhKbiIsImFtciI6WyJwYXNzd29yZCIsIm90cCJdLCJzaWQiOiI2N2E5MjUzOWIzZTU0ODA0ZmEyYmY2MTYifQ.vAzP7XZnZ0xgULiCUH1M2-ToGL0yGm8XibQHyqV7JvdK2KiRQ-g7beoSfJvC9PgYc2MapwTK2WtOleAeR1pEjfJdb1b3skLkFkBe6xbMVDJ7KqOTVfOw7W4vH-1wWtMQ_4ZqZsDjwJ5QIh7omOTucpQ7x1RjS6j2mf-EaB3pD-fG8UidjFPVopYEK-WbhbQ_hiGxRC2EXiK6Dis_DyhfiPFT16t1G2l3ivWrGej1h9a_5gLGG6MaACDr5ebMKTKt7DjXF32Vys1vjpw6wsvQF1bSP9imKNC90ozk1Fg35Auz1TVauIHN5lSsDF7zlS9X3-X3pMymK8bJNmOgDgEtIA",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "joshansen.platform.vivint.com:50051",
+        "method": "climate.ClimatePublic.GetClimateDevices",
+        "body": "{\"system_id\": \"8764201614638052\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2pvc2hhbnNlbi5wbGF0Zm9ybS52aXZpbnQuY29tLyIsInN1YiI6IjY3OGZmZjE0Zjg3MzExNzAyZDkyNGVlMSIsImF1ZCI6Imh0dHBzOi8vam9zaGFuc2VuLnBsYXRmb3JtLnZpdmludC5jb20vIiwiZXhwIjoxNzM5MTQxOTYxLCJpYXQiOjE3MzkxMzgzNjEsInNjb3BlIjpbImVtYWlsIiwib3BlbmlkIl0sImF6cCI6InFnWUNhNGVzSk1SbnA3SlpYVWgyNDhKbiIsImFtciI6WyJwYXNzd29yZCIsIm90cCJdLCJzaWQiOiI2N2E5MjUzOWIzZTU0ODA0ZmEyYmY2MTYifQ.vAzP7XZnZ0xgULiCUH1M2-ToGL0yGm8XibQHyqV7JvdK2KiRQ-g7beoSfJvC9PgYc2MapwTK2WtOleAeR1pEjfJdb1b3skLkFkBe6xbMVDJ7KqOTVfOw7W4vH-1wWtMQ_4ZqZsDjwJ5QIh7omOTucpQ7x1RjS6j2mf-EaB3pD-fG8UidjFPVopYEK-WbhbQ_hiGxRC2EXiK6Dis_DyhfiPFT16t1G2l3ivWrGej1h9a_5gLGG6MaACDr5ebMKTKt7DjXF32Vys1vjpw6wsvQF1bSP9imKNC90ozk1Fg35Auz1TVauIHN5lSsDF7zlS9X3-X3pMymK8bJNmOgDgEtIA",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "joshansen.platform.vivint.com:50051",
+        "method": "climate.ClimatePublic.SetOperatingMode",
+        "body": "{\"system_id\": \"8764201614638052\", \"device_id\": \"urn:vivint:google:8764201614638052:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\", \"mode\": \"COOL\", \"component_id\": \"\"}"
+    }
+]
