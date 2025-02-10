@@ -341,7 +341,8 @@ class GrpcCallView(tk.Tk):
         if not fields:
             ttk.Label(self.body_fields_frame, text="(No body fields required for this method)").grid(row=0, column=0, sticky=tk.W)
         else:
-            for row, field in enumerate(fields):
+            ttk.Label(self.body_fields_frame, text="Body").grid(row=0, column=0, sticky=tk.W)
+            for row, field in enumerate(fields, start = 1):
                 field_name = field.name
                 ttk.Label(self.body_fields_frame, text=f"{field_name}:").grid(row=row, column=0, sticky=tk.W, padx=(0, 5), pady=2)
                 entry = ttk.Entry(self.body_fields_frame, width=50)
