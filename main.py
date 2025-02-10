@@ -163,7 +163,7 @@ class GrpcCallView(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("gRPC Caller with grpcurl")
-        self.geometry("900x600")
+        self.geometry("900x900")
         self._setup_ui()
 
     def _setup_ui(self):
@@ -341,8 +341,8 @@ class GrpcCallView(tk.Tk):
         if not fields:
             ttk.Label(self.body_fields_frame, text="(No body fields required for this method)").grid(row=0, column=0, sticky=tk.W)
         else:
-            ttk.Label(self.body_fields_frame, text="Body").grid(row=0, column=0, sticky=tk.W)
-            for row, field in enumerate(fields, start = 1):
+            ttk.Label(self.body_fields_frame, text="BODY").grid(row=0, column=0, sticky=tk.W, padx=(0, 5), pady=2)
+            for row, field in enumerate(fields, start=1):
                 field_name = field.name
                 ttk.Label(self.body_fields_frame, text=f"{field_name}:").grid(row=row, column=0, sticky=tk.W, padx=(0, 5), pady=2)
                 entry = ttk.Entry(self.body_fields_frame, width=50)
