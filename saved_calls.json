@@ -1,20 +1,65 @@
 [
     {
         "port_forward": "",
-        "cookie": "",
-        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2pvc2hhbnNlbi5wbGF0Zm9ybS52aXZpbnQuY29tLyIsInN1YiI6IjY3OGZmZjE0Zjg3MzExNzAyZDkyNGVlMSIsImF1ZCI6Imh0dHBzOi8vam9zaGFuc2VuLnBsYXRmb3JtLnZpdmludC5jb20vIiwiZXhwIjoxNzM5MTQ5MzkwLCJpYXQiOjE3MzkxNDU3OTAsInNjb3BlIjpbImVtYWlsIiwib3BlbmlkIl0sImF6cCI6InFnWUNhNGVzSk1SbnA3SlpYVWgyNDhKbiIsImFtciI6WyJwYXNzd29yZCIsIm90cCJdLCJzaWQiOiI2N2E5NDIzZWIzZTU0ODA0ZmEyYmY2MWEifQ.Lg2prxnqw50QmkYy-9OpFCYjaKGGz2ShOqILGlAIIy4rK7uZWsWL-ptlMFTeuKB03CyotL4mf_R5nc8g5451waDdvy77iXjTrVzykGFBezGiEv5E1Zy_R5tmD5zm-fkzRY1lP60l9tdDP3aqGfzjEcbLgD9LxNPZ0ZtKIWqo7syMP2prFEZCC9lxZw9nxfLgIdXj5cjFAUDiBu3CCKBqgw0t2l7plER6vns-0nich_OhiLsjZaTIwZXaTN3_oWqkQ9C9z72d_YkAagggiJAJ0RvlEaKzgs55bagWk9p2xkb_y5vrfriuVqHai74HxG7N9rGekACsDJy9ofd-RX0Sww",
+        "cookie": "994135a0-9c36-4a2d-b215-3832049a3d3b",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/google-sdm-public-proto/generated/google_sdm_public.protoset",
+        "server": "joshansen.platform.vivint.com:50051",
+        "method": "googlesdmpublic.GoogleSdmPublicService.ConnectGoogleSDMToSystem",
+        "body": "{\"system_id\": \"8764201614638052\", \"external_id\": \"AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "994135a0-9c36-4a2d-b215-3832049a3d3b",
+        "bearer_token": "",
         "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
         "server": "joshansen.platform.vivint.com:50051",
-        "method": "climate.ClimatePublic.GetClimateDevices",
-        "body": "{\"system_id\": \"8764201614638052\"}"
+        "method": "climate.ClimatePublic.SetOperatingMode",
+        "body": "{\"system_id\": \"7690516166474673\", \"device_id\": \"urn:vivint:google:7690516166474673:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\", \"mode\": \"COOL\", \"component_id\": \"\"}"
     },
     {
         "port_forward": "",
         "cookie": "",
-        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2pvc2hhbnNlbi5wbGF0Zm9ybS52aXZpbnQuY29tLyIsInN1YiI6IjY3OGZmZjE0Zjg3MzExNzAyZDkyNGVlMSIsImF1ZCI6Imh0dHBzOi8vam9zaGFuc2VuLnBsYXRmb3JtLnZpdmludC5jb20vIiwiZXhwIjoxNzM5MTQ5MzkwLCJpYXQiOjE3MzkxNDU3OTAsInNjb3BlIjpbImVtYWlsIiwib3BlbmlkIl0sImF6cCI6InFnWUNhNGVzSk1SbnA3SlpYVWgyNDhKbiIsImFtciI6WyJwYXNzd29yZCIsIm90cCJdLCJzaWQiOiI2N2E5NDIzZWIzZTU0ODA0ZmEyYmY2MWEifQ.Lg2prxnqw50QmkYy-9OpFCYjaKGGz2ShOqILGlAIIy4rK7uZWsWL-ptlMFTeuKB03CyotL4mf_R5nc8g5451waDdvy77iXjTrVzykGFBezGiEv5E1Zy_R5tmD5zm-fkzRY1lP60l9tdDP3aqGfzjEcbLgD9LxNPZ0ZtKIWqo7syMP2prFEZCC9lxZw9nxfLgIdXj5cjFAUDiBu3CCKBqgw0t2l7plER6vns-0nich_OhiLsjZaTIwZXaTN3_oWqkQ9C9z72d_YkAagggiJAJ0RvlEaKzgs55bagWk9p2xkb_y5vrfriuVqHai74HxG7N9rGekACsDJy9ofd-RX0Sww",
+        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2JldGEucGxhdGZvcm0udml2aW50LmNvbS8iLCJzdWIiOiI1YmVjOWQ0OTkxNWFlNzI3N2NkNTZkNDMiLCJhdWQiOiJodHRwczovL2JldGEucGxhdGZvcm0udml2aW50LmNvbS8iLCJleHAiOjE3MzkyMjUwOTEsImlhdCI6MTczOTIyMTQ5MSwic2NvcGUiOlsiZW1haWwiLCJvcGVuaWQiXSwiYXpwIjoicWdZQ2E0ZXNKTVJucDdKWlhVaDI0OEpuIiwiYW1yIjpbInBhc3N3b3JkIiwib3RwIl0sInNpZCI6IjY3YWE2OWYzMTFkNjA4ODc0NTAyZWQyOCJ9.mYGQ7AuR_gwLImj1A60Uac1JTb_E8U0NOx2R74NoBu6z52PajXjWwTRylu7J76y3WP6quBBj6_20xFi2wBPA5zaqqlvutlejvWEIj0-4qYQlRYQte40-qhe44AVTgWuN5YKgR_yM_aW4x40-Dyp57l5dlXUVko95W2OMl-DnPcLgzNTXvcgp9yDK2iyvD6eVzYF1YwOLRVtRq6zN6E2vUxgQMYRyUILk94u1kc1O36hT0KYVoz0qSn1dq_jo2pfCEqkzdS-Of6JCReaiEd9JUFTcMEwMiqw5hLIeUPY53sRfnMkI6-2b70dKGWMYVr3pQpMfRZ0KPY8nT0DiQEd7wg",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/google-sdm-public-proto/generated/google_sdm_public.protoset",
+        "server": "beta.platform.vivint.com:50051",
+        "method": "googlesdmpublic.GoogleSdmPublicService.ConnectGoogleSDMToSystem",
+        "body": "{\"system_id\": \"5284986160267933\", \"external_id\": \"AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2JldGEucGxhdGZvcm0udml2aW50LmNvbS8iLCJzdWIiOiI1YmVjOWQ0OTkxNWFlNzI3N2NkNTZkNDMiLCJhdWQiOiJodHRwczovL2JldGEucGxhdGZvcm0udml2aW50LmNvbS8iLCJleHAiOjE3Mzk5MDA4NDQsImlhdCI6MTczOTg5NzI0NCwic2NvcGUiOlsiZW1haWwiLCJvcGVuaWQiXSwiYXpwIjoicWdZQ2E0ZXNKTVJucDdKWlhVaDI0OEpuIiwiYW1yIjpbInBhc3N3b3JkIiwib3RwIl0sInNpZCI6IjY3YjRiOTk5Y2MzMzdmZGZkODlmNTM2OSJ9.M_cocK1oEzrKHweqK2WKV2cc8OU01Sklqv-l4uc29Da8e5ihEefHp0u4swwfaIrsOKgBCaJPUUEWT-S35EnBMiGONRnUAMdgFLiO1rbOZ4NiNaUcmXC4mwQuKkDYcU3NKhDkC300buNEZDofqhX_zN8tmrMT3NcGkEqyGynuOTAT3M5LQ6-dvmlAjixBrnMzeDdbP2WM6_6ta3R3PsvBQ7SSb6gp7i2HCpPIChfSBPpdjvh3F3U-N9_I7sAZpVH70_81MOuWpgwFjC2wm5jYchXeXKZeD89GHsgsGRTdvESro6iK7zlIQq5qxkgYzL95p8QWKKQbBznuGe6rHGZsUw",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "beta.platform.vivint.com:50051",
+        "method": "climate.ClimatePublic.SetOperatingMode",
+        "body": "{\"system_id\": \"5284986160267933\", \"device_id\": \"urn:vivint:google:5284986160267933:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\", \"mode\": \"COOL\", \"component_id\": \"\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2pvc2hhbnNlbi5wbGF0Zm9ybS52aXZpbnQuY29tLyIsInN1YiI6IjY3OGZmZjE0Zjg3MzExNzAyZDkyNGVlMSIsImF1ZCI6Imh0dHBzOi8vam9zaGFuc2VuLnBsYXRmb3JtLnZpdmludC5jb20vIiwiZXhwIjoxNzM5Mjk2Mzk3LCJpYXQiOjE3MzkyOTI3OTcsInNjb3BlIjpbImVtYWlsIiwib3BlbmlkIl0sImF6cCI6InFnWUNhNGVzSk1SbnA3SlpYVWgyNDhKbiIsImFtciI6WyJwYXNzd29yZCIsIm90cCJdLCJzaWQiOiI2N2FiODA3ZDEyMWZhOWIzZGZjNGVhM2EifQ.QHuzF3g0k57VaMMtERvzD9z-HkSilnAKcpyyRccHFe_QSj9neQbHSyCnNnnOvgdGLcuUUIfHUJFJcwTcMmJf-TUMRclH5-KTHfve_0yqX6S3TD7OC2SYecY6qxbFyNlLCYRdZVbNJvTQTgqqNp_rS47RO-iGlr_tMXwgb4MvTJAo5TuXjEttXYrKnKYnP9U71QWS4mXySsv2tQqFPuMhfFktHz2cEIkInl3j4EJd0FI9uPj6vYYf7lFfttMI3hHhk2pPLnI8SC0gVyYKpb-4ohnpsnoZ6WPo5wKeX4asv7SuFIIleOZO2_6sY-i-vo4KAOj_iSifVCZIxKS5uGzFNQ",
         "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
         "server": "joshansen.platform.vivint.com:50051",
+        "method": "climate.ClimatePublic.DeleteDevice",
+        "body": "{\"system_id\": \"7690516166474673\", \"device_id\": \"urn:vivint:google:7690516166474673:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2lkLnZpdmludC5jb20vIiwic3ViIjoiNWVlN2RlMjMzNTBlNTgwODI2OGE5ZjlhIiwiYXVkIjoiaHR0cHM6Ly9pZC52aXZpbnQuY29tLyIsImV4cCI6MTczOTM4NTY2OSwiaWF0IjoxNzM5MzgyMDY5LCJzY29wZSI6WyJlbWFpbCIsIm9wZW5pZCJdLCJhenAiOiJxZ1lDYTRlc0pNUm5wN0paWFVoMjQ4Sm4iLCJhbXIiOlsicGFzc3dvcmQiLCJvdHAiXSwic2lkIjoiNjdhY2RkMzQ1MGU2NzE0NTQ5M2NhYWZiIn0.elv7wEdT6vmzmZmYYZOvKTLAN0jYjs5zRwFbupUgXkFPLl5XnSlHtKWS_geVO0idAGykd3X3HOJzd2ny7gIOiQ9m6mj8-Nl2QLAkmqq9qPeNzT0fFPLbNKN3e0JGS0r1SAR9Qoa1owm6ptLrrcJhuH-I7G_ywMkrrpviG8lbHRTy3Ja6VGWrCYXUTA8em74H8p4u_p8AWd4JhtZwDAt2CjfbPMBiKb_mBsHquXfoWbuOzLTPW1KfWEmnCN6zoeOFbYUbVmCqnw-icO8OeJm51BSfDu6snSRv9MBSdIiwttisV4Nqqo4OYQ-01vV7oJqOFZjeuwrQuAUE-XT-hX3L6g",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "grpc.vivintsky.com:50051",
         "method": "climate.ClimatePublic.SetOperatingMode",
-        "body": "{\"system_id\": \"8764201614638052\", \"device_id\": \"urn:vivint:google:8764201614638052:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\", \"mode\": \"COOL\", \"component_id\": \"\"}"
+        "body": "{\"system_id\": \"8289086784296542\", \"device_id\": \"urn:vivint:google:8289086784296542:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\", \"mode\": \"COOL\", \"component_id\": \"\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InNreS1hbmRyb2lkLjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2lkLnZpdmludC5jb20vIiwic3ViIjoiNWVlN2RlMjMzNTBlNTgwODI2OGE5ZjlhIiwiYXVkIjoiaHR0cHM6Ly9pZC52aXZpbnQuY29tLyIsImV4cCI6MTczOTI5NjY2MiwiaWF0IjoxNzM5MjkzMDYyLCJzY29wZSI6WyJlbWFpbCIsIm9wZW5pZCJdLCJhenAiOiJxZ1lDYTRlc0pNUm5wN0paWFVoMjQ4Sm4iLCJhbXIiOlsicGFzc3dvcmQiLCJvdHAiXSwic2lkIjoiNjdhYjgxODUxYmEzZTEzMzY4NGJmNWJiIn0.sgq6qALhncfg1BQSIY6tsNiHtnqR3Ch8qnE3VHIkAgD8cYU6bbol3f2fiDriJyzp0PwmnuKLHYZlOQyJTONpTSzLLFAzyBm99k316NZaHt5fjV0j1a1o-pm1RT3pGDqqMtqvKmc0gAHfiKea1G6V0sko5U30Mrr3nTH1din3sBF1R4v_CNujsQiQXDOu9ZjOVCaEis8BDWVoikIckXLErd4L3NcpJD0NUSawLKStkfVao6JRnP-XbCRYqnC-afekGjE3coOpVTVLG3PfOVJiiHWXh9uaLFmfQsmFMgKWqsEIBZ8F5-F5c0s_VnkHyg1_YAJrkp6OeQ2cxY1sqaaNUw",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/google-sdm-public-proto/generated/google_sdm_public.protoset",
+        "server": "grpc.vivintsky.com:50051",
+        "method": "googlesdmpublic.GoogleSdmPublicService.ConnectGoogleSDMToSystem",
+        "body": "{\"system_id\": \"8289086784296542\", \"external_id\": \"AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\"}"
     }
 ]

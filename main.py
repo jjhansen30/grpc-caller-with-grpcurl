@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 A refactored Tkinter-based Python application following the Model-View-Presenter (MVP) pattern.
 """
@@ -170,16 +169,8 @@ class GrpcCallView(tk.Tk):
         # Main container and side menu
         self.main_container = ttk.Frame(self)
         self.main_container.pack(fill=tk.BOTH, expand=True)
-        self.side_menu = ttk.Frame(self.main_container, width=150)
-        self.side_menu.pack(side=tk.LEFT, fill=tk.Y)
         self.content_frame = ttk.Frame(self.main_container)
         self.content_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-
-        # Side menu buttons (navigation)
-        self.grpc_button = ttk.Button(self.side_menu, text="gRPC Caller")
-        self.grpc_button.pack(padx=10, pady=10, fill=tk.X)
-        self.hello_button = ttk.Button(self.side_menu, text="Hello World")
-        self.hello_button.pack(padx=10, pady=10, fill=tk.X)
 
         # Input frame for gRPC call details
         self.input_frame = ttk.Frame(self.content_frame)
@@ -381,7 +372,7 @@ class GrpcCallView(tk.Tk):
 class GrpcCallPresenter:
     """
     The Presenter in the MVP pattern. It responds to view events,
-    calls the model/service classes as needed, and then instructs the view to update.
+    calls the model/service classes as needed, and then instructs the view to update.`
     """
     def __init__(self, view: GrpcCallView, grpc_caller: GrpcCaller, saved_calls_manager: SavedCallsManager, protoset_parser: ProtosetParser):
         self.view = view
@@ -489,7 +480,7 @@ class GrpcCallPresenter:
 # -------------------------
 
 def main():
-    HISTORY_FILE = "saved_calls.json"
+    HISTORY_FILE = "/Users/joshansen/repo/github-repo/grpc-caller-with-grpcurl/saved_calls.json"
     grpc_caller = GrpcCaller()
     protoset_parser = ProtosetParser()
     saved_calls_manager = SavedCallsManager(HISTORY_FILE)
