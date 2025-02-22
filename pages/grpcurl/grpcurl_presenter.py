@@ -1,5 +1,8 @@
 from pages.grpcurl.grpcurl_view import GrpcUrlView
-from main import GrpcCaller, SavedCallsManager, ProtosetParser
+from pages.grpcurl.protoset_parser import ProtosetParser
+from main import GrpcCaller, SavedCallsManager
+import os
+import json
 
 class GrpcCallPresenter:
     """
