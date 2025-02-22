@@ -10,12 +10,12 @@
     },
     {
         "port_forward": "",
-        "cookie": "994135a0-9c36-4a2d-b215-3832049a3d3b",
+        "cookie": "fc9dd2a8-58de-40be-bfbf-dc842b35837b",
         "bearer_token": "",
         "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
         "server": "joshansen.platform.vivint.com:50051",
         "method": "climate.ClimatePublic.SetOperatingMode",
-        "body": "{\"system_id\": \"7690516166474673\", \"device_id\": \"urn:vivint:google:7690516166474673:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\", \"mode\": \"COOL\", \"component_id\": \"\"}"
+        "body": "{\"system_id\": \"8764201614638052\", \"device_id\": \"urn:vivint:google:8764201614638052:AVPHwEsm2BdbwD2zjDqfja4Hgy2oxSmiTGKkcQUToMUXaNpZ6MUHr8gy_viZNOWXscN75dgzteR582hViG70MnZOdfRs\", \"mode\": \"COOL\", \"component_id\": \"\"}"
     },
     {
         "port_forward": "",
