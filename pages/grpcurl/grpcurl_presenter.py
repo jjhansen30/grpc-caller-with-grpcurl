@@ -1,7 +1,7 @@
 from pages.grpcurl.grpcurl_view import GrpcUrlView
 from pages.grpcurl.protoset_parser import ProtosetParser
 from pages.grpcurl.grpc_caller import GrpcCaller
-from main import SavedCallsManager
+from data.saved_calls_manager import SavedCallsManager
 import os
 import json
 
