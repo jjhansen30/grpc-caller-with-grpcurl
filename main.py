@@ -33,9 +33,9 @@ class MainView(tk.Tk):
         self.notebook.add(self.automations_page, text="Automations")
         self.notebook.add(self.env_vars_page, text="Environment variables")
 
-def main():
+if __name__ == "__main__":
 
-    SAVED_CALLS = "data/saved_calls.json"  # Adjust the history file path as needed
+    SAVED_CALLS = "data/saved_calls.json"
     grpc_caller = GrpcCaller()
     protoset_parser = ProtosetParser()
     saved_calls_manager = SavedGrpcManager(SAVED_CALLS)
@@ -43,6 +43,3 @@ def main():
     # Only the grpcurl page is functional, so pass that to the presenter.
     GrpcCallPresenter(main_view.grpcurl_page, grpc_caller, saved_calls_manager, protoset_parser)
     main_view.mainloop()
-
-if __name__ == "__main__":
-    main()
