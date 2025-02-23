@@ -1,7 +1,7 @@
 from pages.grpcurl.grpcurl_view import GrpcUrlView
 from pages.grpcurl.protoset_parser import ProtosetParser
 from pages.grpcurl.grpc_caller import GrpcCaller
-from data.saved_calls_manager import SavedCallsManager
+from data.saved_grpc_manager import SavedGrpcManager
 import os
 import json
 
@@ -10,7 +10,7 @@ class GrpcCallPresenter:
     The Presenter in the MVP pattern. It responds to view events,
     calls the model/service classes as needed, and then instructs the view to update.
     """
-    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedCallsManager, protoset_parser: ProtosetParser):
+    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser):
         self.view = view
         self.grpc_caller = grpc_caller
         self.saved_calls_manager = saved_calls_manager

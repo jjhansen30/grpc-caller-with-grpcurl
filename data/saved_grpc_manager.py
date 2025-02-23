@@ -1,7 +1,7 @@
 import json
 import os
 
-class SavedCallsManager:
+class SavedGrpcManager:
     """Manages persistence of grpcurl call details."""
     def __init__(self, history_file: str):
         self.history_file = history_file

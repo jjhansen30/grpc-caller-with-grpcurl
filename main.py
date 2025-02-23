@@ -5,7 +5,7 @@ from pages.grpcurl.grpc_caller import GrpcCaller
 from pages.curl.curl_view import CurlView
 from pages.environment_variables.environ_var_view import EnvironVarView
 from pages.automations.automations_view import AutomationsView
-from data.saved_calls_manager import SavedCallsManager
+from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
 import tkinter as tk
 
@@ -35,10 +35,10 @@ class MainView(tk.Tk):
 
 def main():
 
-    HISTORY_FILE = "data/saved_calls.json"  # Adjust the history file path as needed
+    SAVED_CALLS = "data/saved_calls.json"  # Adjust the history file path as needed
     grpc_caller = GrpcCaller()
     protoset_parser = ProtosetParser()
-    saved_calls_manager = SavedCallsManager(HISTORY_FILE)
+    saved_calls_manager = SavedGrpcManager(SAVED_CALLS)
     main_view = MainView()
     # Only the grpcurl page is functional, so pass that to the presenter.
     GrpcCallPresenter(main_view.grpcurl_page, grpc_caller, saved_calls_manager, protoset_parser)
