@@ -1,6 +1,6 @@
-from pages.grpcurl.grpcurl_view import GrpcUrlView
-from pages.grpcurl.protoset_parser import ProtosetParser
-from pages.grpcurl.grpc_caller import GrpcCaller
+from ui.grpcurl.grpcurl_view import GrpcUrlView
+from ui.grpcurl.protoset_parser import ProtosetParser
+from network.grpc_caller import GrpcCaller
 from data.saved_grpc_manager import SavedGrpcManager
 import os
 import json
