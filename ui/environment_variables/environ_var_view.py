@@ -169,7 +169,7 @@ class EnvironVarView(ttk.Frame):
 
 # Presenter: Mediates between the View and Model.
 class EnvironmentPresenter:
-    def __init__(self, view, model):
+    def __init__(self, view: EnvironVarView, model: EnvironmentModel):
         self.view = view
         self.model = model
         self.view.set_presenter(self)
