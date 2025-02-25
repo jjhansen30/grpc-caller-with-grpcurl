@@ -1,6 +1,6 @@
+import json
 import tkinter as tk
 from tkinter import ttk
-import json
 
 class GrpcUrlView(ttk.Frame):
     """
@@ -15,7 +15,7 @@ class GrpcUrlView(ttk.Frame):
         self.main_container = ttk.Frame(self)
         self.main_container.pack(fill=tk.BOTH, expand=True)
         self.content_frame = ttk.Frame(self.main_container)
-        self.content_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        self.content_frame.pack(fill=tk.BOTH, expand=True)
 
         # Input frame for gRPC call details
         self.input_frame = ttk.Frame(self.content_frame)

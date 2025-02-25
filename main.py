@@ -16,10 +16,11 @@ class MainView(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("gRPC Caller with grpcurl")
+        self.title("API Caller with gRPCurl and curl")
         self.geometry("900x900")
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
+        self.notebook_padding = 8
 
         # Instantiate each page view
         self.grpcurl_page = GrpcUrlView(self.notebook)
@@ -28,10 +29,10 @@ class MainView(tk.Tk):
         self.env_vars_page = EnvironVarView(self.notebook)
 
         # Add pages to the notebook with appropriate tab labels
-        self.notebook.add(self.grpcurl_page, text="grpcurl")
-        self.notebook.add(self.curl_page, text="curl")
-        self.notebook.add(self.automations_page, text="Automations")
-        self.notebook.add(self.env_vars_page, text="Environment variables")
+        self.notebook.add(self.grpcurl_page, text="grpcurl", padding=self.notebook_padding)
+        self.notebook.add(self.curl_page, text="curl", padding=self.notebook_padding)
+        self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
+        self.notebook.add(self.env_vars_page, text="Environment variables", padding=self.notebook_padding)
 
 if __name__ == "__main__":
 
