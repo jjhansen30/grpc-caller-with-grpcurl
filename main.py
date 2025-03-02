@@ -33,7 +33,7 @@ class MainView(tk.Tk):
         self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
         self.notebook.add(self.environment_page, text="Environment variables", padding=self.notebook_padding)
 
-        self.model = EnvironmentModel()
+        self.model = EnvironmentModel(c.SAVED_ENVIRONMENTS_FILE)
         self.presenter = EnvironmentPresenter(self.environment_page, self.model)
 
 if __name__ == "__main__":
