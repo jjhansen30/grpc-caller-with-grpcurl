@@ -1,8 +1,8 @@
 from network.grpc_caller import GrpcCaller
 from ui.grpcurl_page import GrpcUrlView, ProtosetParser, GrpcCallPresenter
-from ui.curl.curl_view import CurlView
+from ui.curl_page import CurlView
 from ui.environments_page import EnvironVarView, EnvironmentModel, EnvironmentPresenter
-from ui.automations.automations_view import AutomationsView
+from ui.automations_page import AutomationsView
 from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
 import tkinter as tk
