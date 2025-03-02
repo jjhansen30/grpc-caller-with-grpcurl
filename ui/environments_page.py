@@ -1,11 +1,12 @@
-import tkinter as tk
-from tkinter import ttk
 import json
 import os
+import constants as c
+import tkinter as tk
+from tkinter import ttk
 
 # Model: Handles JSON file operations.
 class EnvironmentModel:
-    def __init__(self, filename="environments.json"):
+    def __init__(self, filename: str):
         self.filename = filename
         self.data = {}
         self.load()
@@ -199,7 +200,7 @@ class _MockParent(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("API Caller with gRPCurl and curl")
-        self.geometry("900x900")
+        self.geometry(c.GEOMETRY)
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
@@ -207,7 +208,7 @@ class _MockParent(tk.Tk):
         self.notebook.add(self.environment_view, text="Environment Variables")
 
         # Instantiate the Model and Presenter.
-        self.model = EnvironmentModel()
+        self.model = EnvironmentModel(filename=c.SAVED_ENVIRONMENTS_FILE)
         self.presenter = EnvironmentPresenter(self.environment_view, self.model)
 
 if __name__ == "__main__":
