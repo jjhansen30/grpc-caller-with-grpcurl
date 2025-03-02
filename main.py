@@ -1,7 +1,5 @@
 from network.grpc_caller import GrpcCaller
-from ui.grpcurl.grpcurl_view import GrpcUrlView
-from ui.grpcurl.grpcurl_presenter import GrpcCallPresenter
-from ui.grpcurl.protoset_parser import ProtosetParser
+from ui.grpcurl_page import GrpcUrlView, ProtosetParser, GrpcCallPresenter
 from ui.curl.curl_view import CurlView
 from ui.environment_variables.environ_var_view import EnvironVarView
 from ui.automations.automations_view import AutomationsView
@@ -41,6 +39,5 @@ if __name__ == "__main__":
     protoset_parser = ProtosetParser()
     saved_calls_manager = SavedGrpcManager(SAVED_CALLS)
     main_view = MainView()
-    # Only the grpcurl page is functional, so pass that to the presenter.
     GrpcCallPresenter(main_view.grpcurl_page, grpc_caller, saved_calls_manager, protoset_parser)
     main_view.mainloop()

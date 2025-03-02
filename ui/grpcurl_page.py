@@ -1,6 +1,11 @@
 import json
 import tkinter as tk
+import os
 from tkinter import ttk
+from google.protobuf.descriptor import Descriptor
+from google.protobuf import descriptor_pb2
+from data.saved_grpc_manager import SavedGrpcManager
+from network.grpc_caller import GrpcCaller
 
 class GrpcUrlView(ttk.Frame):
     """
@@ -208,3 +213,172 @@ class GrpcUrlView(ttk.Frame):
         self.protoset_var.set(call_info.get("protoset", ""))
         self.server_var.set(call_info.get("server", ""))
         self.method_var.set(call_info.get("method", ""))
+
+class ProtosetParser:
+    """Handles reading a protoset file and extracting call names and request fields."""
+    @staticmethod
+    def get_call_names(protoset_path):
+        call_names = []
+        try:
+            with open(protoset_path, "rb") as f:
+                fds = descriptor_pb2.FileDescriptorSet()
+                fds.ParseFromString(f.read())
+            for file_desc in fds.file:
+                package_prefix = file_desc.package.strip() if file_desc.package else ""
+                for service in file_desc.service:
+                    full_service_name = f"{package_prefix}.{service.name}" if package_prefix else service.name
+                    for method in service.method:
+                        call_names.append(f"{full_service_name}.{method.name}")
+            return call_names
+        except Exception:
+            return []
+
+    @staticmethod
+    def get_method_request_fields(protoset_path, call_name):
+        try:
+            with open(protoset_path, "rb") as f:
+                fds = descriptor_pb2.FileDescriptorSet()
+                fds.ParseFromString(f.read())
+        except Exception:
+            return []
+
+        messages = {}
+
+        def add_messages(prefix, message_list):
+            for msg in message_list:
+                full_name = f"{prefix}.{msg.name}" if prefix else msg.name
+                messages[full_name] = msg
+                add_messages(full_name, msg.nested_type)
+
+        for file_desc in fds.file:
+            package = file_desc.package.strip() if file_desc.package else ""
+            add_messages(package, file_desc.message_type)
+
+        parts = call_name.split('.')
+        if len(parts) < 2:
+            return []
+        method_name = parts[-1]
+        service_name = parts[-2]
+        package = ".".join(parts[:-2])
+
+        for file_desc in fds.file:
+            file_package = file_desc.package.strip() if file_desc.package else ""
+            if package and file_package != package:
+                continue
+            for service in file_desc.service:
+                if service.name == service_name:
+                    for method in service.method:
+                        if method.name == method_name:
+                            input_type = method.input_type.lstrip('.')
+                            msg_descriptor = messages.get(input_type)
+                            if msg_descriptor:
+                                return msg_descriptor.field
+                            else:
+                                return []
+        return []
+
+class GrpcCallPresenter:
+    """
+    The Presenter in the MVP pattern. It responds to view events,
+    calls the model/service classes as needed, and then instructs the view to update.
+    """
+    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser):
+        self.view = view
+        self.grpc_caller = grpc_caller
+        self.saved_calls_manager = saved_calls_manager
+        self.protoset_parser = protoset_parser
+        self.calls_history = self.saved_calls_manager.load_saved_calls()
+        self.saved_body = None
+
+        # Register callbacks from the view.
+        self.view.set_on_protoset_change(self.handle_protoset_change)
+        self.view.set_on_method_select(self.handle_method_select)
+        self.view.set_on_make_call(self.handle_make_call)
+        self.view.set_on_save_call(self.handle_save_call)
+        self.view.set_on_edit_call(self.handle_edit_call)
+        self.view.set_on_saved_call_select(self.handle_saved_call_select)
+
+        # Initialize the saved calls list.
+        self.view.update_saved_calls_list(self.calls_history, self.saved_calls_manager.get_display_text)
+
+    def handle_protoset_change(self, protoset_path):
+        if not protoset_path or not os.path.exists(protoset_path):
+            self.view.set_call_names([])
+            return
+        call_names = self.protoset_parser.get_call_names(protoset_path)
+        self.view.set_call_names(call_names)
+
+    def handle_method_select(self, call_name, protoset_path):
+        if not call_name or not protoset_path or not os.path.exists(protoset_path):
+            return
+        fields = self.protoset_parser.get_method_request_fields(protoset_path, call_name)
+        self.view.build_body_fields(fields)
+        if self.saved_body:
+            self.view.populate_body_fields(self.saved_body)
+            self.saved_body = None
+
+    def handle_make_call(self):
+        details = self.view.get_call_details()
+        body = self.view.get_body_data()
+        if not details["protoset"] or not details["server"] or not details["method"]:
+            self.view.display_output("Error: Missing required fields (Protoset, Server, or Call Name).\n")
+            return
+
+        return_code, stdout, stderr, command = self.grpc_caller.execute_call(
+            self.view.plaintext_var.get(),
+            details["cookie"],
+            details["bearer_token"],
+            details["protoset"],
+            details["server"],
+            details["method"],
+            body
+        )
+        output = f"Executing command: {' '.join(command)}\n\n"
+        if return_code is None or return_code != 0:
+            output += f"Command failed with return code {return_code}.\n"
+            if stderr.strip():
+                output += f"stderr:\n{stderr}\n"
+        else:
+            output += f"stdout:\n{stdout}\n"
+            if stderr.strip():
+                output += f"stderr:\n{stderr}\n"
+        self.view.display_output(output)
+
+    def handle_save_call(self):
+        details = self.view.get_call_details()
+        details["body"] = self.view.get_body_data()
+        self.saved_calls_manager.append_call(details)
+        self.calls_history = self.saved_calls_manager.load_saved_calls()
+        self.view.update_saved_calls_list(self.calls_history, self.saved_calls_manager.get_display_text)
+
+    def handle_edit_call(self):
+        selection = self.view.saved_call_list_box.curselection()
+        if not selection:
+            self.view.display_output("No saved call selected to edit.\n")
+            return
+        index = selection[0]
+        details = self.view.get_call_details()
+        details["body"] = self.view.get_body_data()
+        try:
+            self.saved_calls_manager.update_call(index, details)
+            self.calls_history = self.saved_calls_manager.load_saved_calls()
+            self.view.update_saved_calls_list(self.calls_history, self.saved_calls_manager.get_display_text)
+            self.view.display_output(f"Saved call at index {index} updated successfully.\n")
+        except Exception as e:
+            self.view.display_output(f"Error updating call: {e}\n")
+
+    def handle_saved_call_select(self, selection):
+        if not selection:
+            return
+        index = selection[0]
+        call_info = self.calls_history[index]
+        self.view.set_input_fields(call_info)
+        body_str = call_info.get("body", "")
+        if body_str:
+            try:
+                self.saved_body = json.loads(body_str)
+            except Exception:
+                self.saved_body = None
+        else:
+            self.saved_body = None
+        self.view.populate_body_fields(self.saved_body)
