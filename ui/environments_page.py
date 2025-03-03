@@ -4,35 +4,6 @@ import constants as c
 import tkinter as tk
 from tkinter import ttk
 
-# Model: Handles JSON file operations.
-class EnvironmentModel:
-    def __init__(self, filename: str):
-        self.filename = filename
-        self.data = {}
-        self.load()
-
-    def load(self):
-        if os.path.exists(self.filename):
-            with open(self.filename, "r") as f:
-                try:
-                    self.data = json.load(f)
-                except json.JSONDecodeError:
-                    self.data = {}
-        else:
-            self.data = {}
-
-    def save_environment(self, env_name, variables):
-        # Save (or update) the environment in the model.
-        self.data[env_name] = variables
-        with open(self.filename, "w") as f:
-            json.dump(self.data, f, indent=4)
-
-    def get_environment(self, env_name):
-        return self.data.get(env_name, {})
-
-    def get_all_environment_names(self):
-        return list(self.data.keys())
-
 # View: Displays the UI and exposes methods for data access and update.
 class EnvironVarView(ttk.Frame):
     def __init__(self, parent):
@@ -194,6 +165,35 @@ class EnvironmentPresenter:
         self.view.set_environment_name(env_name)
         env_data = self.model.get_environment(env_name)
         self.view.populate_variables(env_data)
+
+# Model: Handles JSON file operations.
+class EnvironmentModel:
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.data = {}
+        self.load()
+
+    def load(self):
+        if os.path.exists(self.filename):
+            with open(self.filename, "r") as f:
+                try:
+                    self.data = json.load(f)
+                except json.JSONDecodeError:
+                    self.data = {}
+        else:
+            self.data = {}
+
+    def save_environment(self, env_name, variables):
+        # Save (or update) the environment in the model.
+        self.data[env_name] = variables
+        with open(self.filename, "w") as f:
+            json.dump(self.data, f, indent=4)
+
+    def get_environment(self, env_name):
+        return self.data.get(env_name, {})
+
+    def get_all_environment_names(self):
+        return list(self.data.keys())
 
 # Main application
 class _MockParent(tk.Tk):

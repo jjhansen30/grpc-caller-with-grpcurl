@@ -172,3 +172,4 @@ cython_debug/
 
 # Json files
 saved_calls.json
+environments.json
