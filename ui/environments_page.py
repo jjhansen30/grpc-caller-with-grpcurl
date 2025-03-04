@@ -1,7 +1,7 @@
 import json
 import os
-import constants as c
 import tkinter as tk
+import constants as const
 from tkinter import ttk
 
 # Model: Handles JSON file operations.
@@ -26,6 +26,13 @@ class EnvironmentModel:
         self.data[env_name] = variables
         with open(self.filename, "w") as f:
             json.dump(self.data, f, indent=4)
+
+    def delete_environment(self, env_name):
+        # Remove the entire environment entry from the JSON if it exists.
+        if env_name in self.data:
+            del self.data[env_name]
+            with open(self.filename, "w") as f:
+                json.dump(self.data, f, indent=4)
 
     def get_environment(self, env_name):
         return self.data.get(env_name, {})
@@ -57,14 +64,16 @@ class EnvironVarView(ttk.Frame):
         # Right side: Environment and variable entries.
         self.var_config_frame = ttk.Frame(main_container)
         self.var_config_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=8)
+        # We need 3 columns now (Variable, Value, then an extra for the new button arrangement).
         self.var_config_frame.columnconfigure(0, weight=1)
         self.var_config_frame.columnconfigure(1, weight=1)
+        self.var_config_frame.columnconfigure(2, weight=1)
 
         # Environment Name label and entry.
         ttk.Label(self.var_config_frame, text="Environment Name", anchor="center") \
-            .grid(row=0, column=0, columnspan=2, pady=(5,2))
+            .grid(row=0, column=0, columnspan=3, pady=(5,2))
         self.env_entry = ttk.Entry(self.var_config_frame, justify="center")
-        self.env_entry.grid(row=1, column=0, columnspan=2, pady=(0,10))
+        self.env_entry.grid(row=1, column=0, columnspan=3, pady=(0,10))
 
         # Variable configuration headers.
         ttk.Label(self.var_config_frame, text="Variable").grid(row=2, column=0, sticky="ew")
@@ -78,7 +87,7 @@ class EnvironVarView(ttk.Frame):
         val_entry.grid(row=3, column=1, sticky="ew")
         self.value_entries.append(val_entry)
 
-        # Set the starting row index for add row and save button.
+        # Set the starting row index for add row, edit, and save buttons.
         self.add_button_row = 4
 
         # Add row label (to add more variable rows).
@@ -86,10 +95,18 @@ class EnvironVarView(ttk.Frame):
         self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
         self.add_row_label.bind("<Button-1>", self.add_row)
 
+        # Edit button.
+        self.edit_button = ttk.Label(self.var_config_frame, text="Edit", cursor="hand2")
+        self.edit_button.grid(row=self.add_button_row, column=1, sticky="ew")
+
         # Save button.
         self.save_button = ttk.Label(self.var_config_frame, text="Save", cursor="hand2")
-        self.save_button.grid(row=self.add_button_row, column=1, sticky="ew")
-        # Its callback will be set by the presenter.
+        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
+
+        # Status label (below buttons).
+        # Use a high fixed row so that it doesn't get displaced as you add more variable rows.
+        self.status_label = ttk.Label(self.var_config_frame, text="")
+        self.status_label.grid(row=100, column=0, columnspan=3, sticky="ew", pady=(10,0))
 
     def add_row(self, event):
         # Create a new row of variable and value entries.
@@ -102,8 +119,10 @@ class EnvironVarView(ttk.Frame):
         self.value_entries.append(val_entry)
         
         self.add_button_row += 1
+        # Re-grid the buttons so they move down to the next row.
         self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
-        self.save_button.grid(row=self.add_button_row, column=1, sticky="ew")
+        self.edit_button.grid(row=self.add_button_row, column=1, sticky="ew")
+        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
 
     def on_listbox_select(self, event):
         selection = self.env_list_box.curselection()
@@ -114,6 +133,9 @@ class EnvironVarView(ttk.Frame):
 
     def set_save_callback(self, callback):
         self.save_button.bind("<Button-1>", callback)
+
+    def set_edit_callback(self, callback):
+        self.edit_button.bind("<Button-1>", callback)
 
     def set_presenter(self, presenter):
         self.presenter = presenter
@@ -158,15 +180,22 @@ class EnvironVarView(ttk.Frame):
             val_entry.grid(row=row_index, column=1, sticky="ew")
             self.value_entries.append(val_entry)
             row_index += 1
-        # Reset the add row button and save button to follow the last entry.
+        # Reset the add row button and edit/save buttons to follow the last entry.
         self.add_button_row = row_index
         self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
-        self.save_button.grid(row=self.add_button_row, column=1, sticky="ew")
-    
+        self.edit_button.grid(row=self.add_button_row, column=1, sticky="ew")
+        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
+
     # New method to update the environment name entry.
     def set_environment_name(self, name):
         self.env_entry.delete(0, tk.END)
         self.env_entry.insert(0, name)
+
+    # New helper for showing status text that clears after 5s.
+    def set_status(self, message):
+        self.status_label.config(text=message)
+        # Clear after 5 seconds
+        self.status_label.after(5000, lambda: self.status_label.config(text=""))
 
 # Presenter: Mediates between the View and Model.
 class EnvironmentPresenter:
@@ -175,6 +204,7 @@ class EnvironmentPresenter:
         self.model = model
         self.view.set_presenter(self)
         self.view.set_save_callback(self.on_save)
+        self.view.set_edit_callback(self.on_edit)
         self.update_environment_list()
 
     def update_environment_list(self):
@@ -184,10 +214,26 @@ class EnvironmentPresenter:
     def on_save(self, event):
         env_name = self.view.get_environment_name()
         if not env_name:
+            self.view.set_status("No environment name provided.")
             return
         variables = self.view.get_variables()
         self.model.save_environment(env_name, variables)
         self.update_environment_list()
+        self.view.set_status(f"Environment '{env_name}' saved!")
+
+    def on_edit(self, event):
+        # Example: remove the selected environment. Adapt as needed for your “add/remove” logic.
+        selection = self.view.env_list_box.curselection()
+        if not selection:
+            self.view.set_status("No environment selected to edit.")
+            return
+        index = selection[0]
+        env_name = self.view.env_list_box.get(index)
+        self.model.delete_environment(env_name)
+        self.update_environment_list()
+        self.view.set_environment_name("")
+        self.view.clear_variable_entries()
+        self.view.set_status(f"Environment '{env_name}' deleted!")
 
     def environment_selected(self, env_name):
         # Update the environment name field when a list box item is selected.
@@ -200,7 +246,7 @@ class _MockParent(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("API Caller with gRPCurl and curl")
-        self.geometry(c.GEOMETRY)
+        self.geometry(const.GEOMETRY)
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
@@ -208,7 +254,7 @@ class _MockParent(tk.Tk):
         self.notebook.add(self.environment_view, text="Environment Variables")
 
         # Instantiate the Model and Presenter.
-        self.model = EnvironmentModel(filename=c.SAVED_ENVIRONMENTS_FILE)
+        self.model = EnvironmentModel(filename=const.SAVED_ENVIRONMENTS_FILE)
         self.presenter = EnvironmentPresenter(self.environment_view, self.model)
 
 if __name__ == "__main__":

@@ -171,4 +171,5 @@ cython_debug/
 .pypirc
 
 # Json files
-saved_calls.json
+environments.json
+grpc_calls.json
