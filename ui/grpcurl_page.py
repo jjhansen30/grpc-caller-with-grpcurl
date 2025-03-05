@@ -34,12 +34,9 @@ class GrpcUrlView(ttk.Frame):
         self.plaintext_var = tk.BooleanVar(value=False)
 
         # Port Forward Command
-        ttk.Label(self.input_frame, text="Port Forward Command:").grid(row=0, column=0, sticky=tk.W, pady=2)
-        self.port_forward_entry = ttk.Entry(self.input_frame, textvariable=self.port_forward_var, width=50)
-        self.port_forward_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
-        clear_pf = ttk.Label(self.input_frame, text="x", foreground="red", cursor="hand2")
-        clear_pf.grid(row=0, column=2, sticky=tk.W, pady=2)
-        clear_pf.bind("<Button-1>", lambda e: self.port_forward_var.set(""))
+        ttk.Label(self.input_frame, text="Environment").grid(row=0, column=0, sticky=tk.W, pady=2)
+        self.environment_drop_down = ttk.Combobox(self.input_frame, textvariable=self.method_var, width=48, state='readonly')
+        self.environment_drop_down.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
 
         # Authorization Cookie
         ttk.Label(self.input_frame, text="Authorization Cookie (s=):").grid(row=1, column=0, sticky=tk.W, pady=2)
