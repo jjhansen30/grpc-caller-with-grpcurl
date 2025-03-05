@@ -6,7 +6,7 @@ from ui.automations_page import AutomationsView
 from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
 import tkinter as tk
-import constants as c
+import constants as const
 
 class MainView(tk.Tk):
     """
@@ -15,8 +15,8 @@ class MainView(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title(c.APP_NAME)
-        self.geometry(c.GEOMETRY)
+        self.title(const.APP_NAME)
+        self.geometry(const.GEOMETRY)
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
         self.notebook_padding = 8
@@ -33,14 +33,14 @@ class MainView(tk.Tk):
         self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
         self.notebook.add(self.environment_page, text="Environment variables", padding=self.notebook_padding)
 
-        self.model = EnvironmentModel(c.SAVED_ENVIRONMENTS_FILE)
+        self.model = EnvironmentModel(const.SAVED_ENVIRONMENTS_FILE)
         self.presenter = EnvironmentPresenter(self.environment_page, self.model)
 
 if __name__ == "__main__":
 
     grpc_caller = GrpcCaller()
     protoset_parser = ProtosetParser()
-    saved_calls_manager = SavedGrpcManager(c.GRPC_CALLS_FILE)
+    saved_calls_manager = SavedGrpcManager(const.GRPC_CALLS_FILE)
     main_view = MainView()
     GrpcCallPresenter(main_view.grpcurl_page, grpc_caller, saved_calls_manager, protoset_parser)
     main_view.mainloop()

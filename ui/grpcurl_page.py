@@ -34,12 +34,9 @@ class GrpcUrlView(ttk.Frame):
         self.plaintext_var = tk.BooleanVar(value=False)
 
         # Port Forward Command
-        ttk.Label(self.input_frame, text="Port Forward Command:").grid(row=0, column=0, sticky=tk.W, pady=2)
-        self.port_forward_entry = ttk.Entry(self.input_frame, textvariable=self.port_forward_var, width=50)
-        self.port_forward_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
-        clear_pf = ttk.Label(self.input_frame, text="x", foreground="red", cursor="hand2")
-        clear_pf.grid(row=0, column=2, sticky=tk.W, pady=2)
-        clear_pf.bind("<Button-1>", lambda e: self.port_forward_var.set(""))
+        ttk.Label(self.input_frame, text="Environment").grid(row=0, column=0, sticky=tk.W, pady=2)
+        self.environment_drop_down = ttk.Combobox(self.input_frame, textvariable=self.method_var, width=48, state='readonly')
+        self.environment_drop_down.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
 
         # Authorization Cookie
         ttk.Label(self.input_frame, text="Authorization Cookie (s=):").grid(row=1, column=0, sticky=tk.W, pady=2)
@@ -162,9 +159,18 @@ class GrpcUrlView(ttk.Frame):
     def get_body_data(self):
         body_dict = {}
         if hasattr(self, 'dynamic_body_fields'):
-            for field_name, entry in self.dynamic_body_fields.items():
-                body_dict[field_name] = entry.get().strip()
+            for field_name, widget_info in self.dynamic_body_fields.items():
+                widget_type = widget_info["widget_type"]
+                widget_ref = widget_info["widget_ref"]
+                # Get the stripped value
+                field_value = widget_ref.get().strip()
+                
+                # Only include if it's not empty
+                if field_value:
+                    body_dict[field_name] = field_value
+
         return json.dumps(body_dict) if body_dict else ""
+
 
     # Methods for the Presenter to update the view
     def set_call_names(self, call_names):
@@ -174,27 +180,56 @@ class GrpcUrlView(ttk.Frame):
         else:
             self.method_var.set("")
 
-    def build_body_fields(self, fields):
+    def build_body_fields(self, fields_with_enums):
+        """
+        fields_with_enums is expected to be a list of tuples:
+        [
+          (field_descriptor, [possible_values]), ...
+        ]
+        The second element is a list of strings if it's an enum; otherwise it is empty.
+        """
         for widget in self.body_fields_frame.winfo_children():
             widget.destroy()
         self.dynamic_body_fields = {}
-        if not fields:
+
+        if not fields_with_enums:
             ttk.Label(self.body_fields_frame, text="(No body fields required for this method)").grid(row=0, column=0, sticky=tk.W)
-        else:
-            ttk.Label(self.body_fields_frame, text="BODY").grid(row=0, column=0, sticky=tk.W, padx=(0, 5), pady=2)
-            for row, field in enumerate(fields, start=1):
-                field_name = field.name
-                ttk.Label(self.body_fields_frame, text=f"{field_name}:").grid(row=row, column=0, sticky=tk.W, padx=(0, 5), pady=2)
+            return
+
+        ttk.Label(self.body_fields_frame, text="BODY").grid(row=0, column=0, sticky=tk.W, padx=(0, 5), pady=2)
+
+        for row_index, (field_desc, enum_values) in enumerate(fields_with_enums, start=1):
+            field_name = field_desc.name
+            ttk.Label(self.body_fields_frame, text=f"{field_name}:").grid(row=row_index, column=0, sticky=tk.W, padx=(0, 5), pady=2)
+
+            if enum_values:  # === MODIFICATION === If it's an enum, use a Combobox
+                combobox = ttk.Combobox(self.body_fields_frame, values=enum_values, width=48, state='readonly')
+                combobox.grid(row=row_index, column=1, sticky=tk.W, pady=2)
+                self.dynamic_body_fields[field_name] = {
+                    "widget_type": "combo",
+                    "widget_ref": combobox
+                }
+            else:
                 entry = ttk.Entry(self.body_fields_frame, width=50)
-                entry.grid(row=row, column=1, sticky=tk.W, pady=2)
-                self.dynamic_body_fields[field_name] = entry
+                entry.grid(row=row_index, column=1, sticky=tk.W, pady=2)
+                self.dynamic_body_fields[field_name] = {
+                    "widget_type": "entry",
+                    "widget_ref": entry
+                }
 
     def populate_body_fields(self, body_data):
-        if hasattr(self, 'dynamic_body_fields'):
-            for key, value in body_data.items():
-                if key in self.dynamic_body_fields:
-                    self.dynamic_body_fields[key].delete(0, tk.END)
-                    self.dynamic_body_fields[key].insert(0, value)
+        if not hasattr(self, 'dynamic_body_fields') or not body_data:
+            return
+
+        for key, value in body_data.items():
+            if key in self.dynamic_body_fields:
+                widget_type = self.dynamic_body_fields[key]["widget_type"]
+                widget_ref = self.dynamic_body_fields[key]["widget_ref"]
+                if widget_type == "combo":
+                    widget_ref.set(value)
+                else:
+                    widget_ref.delete(0, tk.END)
+                    widget_ref.insert(0, value)
 
     def display_output(self, text):
         self.output_text.delete("1.0", tk.END)
@@ -235,6 +270,11 @@ class ProtosetParser:
 
     @staticmethod
     def get_method_request_fields(protoset_path, call_name):
+        """
+        Returns a list of tuples: (field_descriptor, list_of_enum_values_if_any).
+        If the field is an enum, list_of_enum_values_if_any will be the enumerated values.
+        Otherwise, it will be an empty list.
+        """
         try:
             with open(protoset_path, "rb") as f:
                 fds = descriptor_pb2.FileDescriptorSet()
@@ -242,18 +282,27 @@ class ProtosetParser:
         except Exception:
             return []
 
+        # Collect message descriptors
         messages = {}
+        # Collect enum descriptors
+        enums = {}
 
-        def add_messages(prefix, message_list):
+        def add_messages(prefix, message_list, enum_list):
             for msg in message_list:
-                full_name = f"{prefix}.{msg.name}" if prefix else msg.name
-                messages[full_name] = msg
-                add_messages(full_name, msg.nested_type)
+                full_msg_name = f"{prefix}.{msg.name}" if prefix else msg.name
+                messages[full_msg_name] = msg
+                # Recurse nested messages
+                add_messages(full_msg_name, msg.nested_type, msg.enum_type)
+            # Also collect top-level enums
+            for en in enum_list:
+                full_enum_name = f"{prefix}.{en.name}" if prefix else en.name
+                enums[full_enum_name] = en
 
         for file_desc in fds.file:
             package = file_desc.package.strip() if file_desc.package else ""
-            add_messages(package, file_desc.message_type)
+            add_messages(package, file_desc.message_type, file_desc.enum_type)
 
+        # Resolve method -> input message
         parts = call_name.split('.')
         if len(parts) < 2:
             return []
@@ -261,6 +310,8 @@ class ProtosetParser:
         service_name = parts[-2]
         package = ".".join(parts[:-2])
 
+        # Find that input message descriptor
+        input_msg = None
         for file_desc in fds.file:
             file_package = file_desc.package.strip() if file_desc.package else ""
             if package and file_package != package:
@@ -270,12 +321,28 @@ class ProtosetParser:
                     for method in service.method:
                         if method.name == method_name:
                             input_type = method.input_type.lstrip('.')
-                            msg_descriptor = messages.get(input_type)
-                            if msg_descriptor:
-                                return msg_descriptor.field
-                            else:
-                                return []
-        return []
+                            input_msg = messages.get(input_type)
+                            break
+
+        if not input_msg:
+            return []
+
+        # Build up the list: (field_descriptor, [possible_enum_vals_if_any])
+        output = []
+        for field in input_msg.field:
+            # If it's an enum, gather possible values
+            if field.type == descriptor_pb2.FieldDescriptorProto.TYPE_ENUM:
+                enum_type_name = field.type_name.lstrip('.')  # e.g. .some_package.MyEnum
+                enum_descriptor = enums.get(enum_type_name)
+                if enum_descriptor:
+                    possible_values = [v.name for v in enum_descriptor.value]
+                else:
+                    possible_values = []
+                output.append((field, possible_values))
+            else:
+                output.append((field, []))
+
+        return output
 
 class GrpcCallPresenter:
     """
@@ -311,8 +378,9 @@ class GrpcCallPresenter:
     def handle_method_select(self, call_name, protoset_path):
         if not call_name or not protoset_path or not os.path.exists(protoset_path):
             return
-        fields = self.protoset_parser.get_method_request_fields(protoset_path, call_name)
-        self.view.build_body_fields(fields)
+        fields_with_enums = self.protoset_parser.get_method_request_fields(protoset_path, call_name)
+        self.view.build_body_fields(fields_with_enums)
+        # If we've just loaded a saved call's body, populate it now
         if self.saved_body:
             self.view.populate_body_fields(self.saved_body)
             self.saved_body = None
@@ -381,4 +449,15 @@ class GrpcCallPresenter:
                 self.saved_body = None
         else:
             self.saved_body = None
-        self.view.populate_body_fields(self.saved_body)
+        # Trigger a re-build of the body fields for the newly set method
+        # so that they get repopulated after building.
+        # If a valid method is set, handle_method_select will call build_body_fields again
+        # and then populate with self.saved_body afterwards.
+        protoset_path = call_info.get("protoset", "")
+        method_name = call_info.get("method", "")
+        if protoset_path and method_name and os.path.exists(protoset_path):
+            fields_with_enums = self.protoset_parser.get_method_request_fields(protoset_path, method_name)
+            self.view.build_body_fields(fields_with_enums)
+            if self.saved_body:
+                self.view.populate_body_fields(self.saved_body)
+                self.saved_body = None
