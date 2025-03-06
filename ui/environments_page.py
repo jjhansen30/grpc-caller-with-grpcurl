@@ -2,6 +2,7 @@ import json
 import os
 import tkinter as tk
 import constants as const
+import re
 from tkinter import ttk
 
 # Model: Handles JSON file operations.
@@ -285,6 +286,24 @@ class _MockParent(tk.Tk):
         # Instantiate the Model and Presenter.
         self.model = EnvironmentModel(filename=const.SAVED_ENVIRONMENTS_FILE)
         self.presenter = EnvironmentPresenter(self.environment_view, self.model)
+
+def substitute_env_vars(text: str, env_vars: dict):
+    """
+    Substitute bracketed variable references in the form {{variable}}
+    using the provided env_vars dictionary.
+
+    :param text: The input string that may contain bracketed variables.
+    :param env_vars: A dictionary mapping variable names to values.
+    :return: The string with all substitutions applied.
+    """
+    if not text:
+        return text
+    pattern = re.compile(r"{{\s*(\w+)\s*}}")
+    def replace(match: str):
+        var_name = match.group(1)
+        return env_vars.get(var_name, match.group(0))
+    return pattern.sub(replace, text)
+
 
 if __name__ == "__main__":
     mock_parent = _MockParent()

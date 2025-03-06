@@ -1,12 +1,12 @@
 import json
 import tkinter as tk
 import os
-import re  # <-- Added for regex substitution
 from tkinter import ttk
 from google.protobuf.descriptor import Descriptor
 from google.protobuf import descriptor_pb2
 from data.saved_grpc_manager import SavedGrpcManager
 from network.grpc_caller import GrpcCaller
+from ui.environments_page import substitute_env_vars, EnvironmentModel
 
 class GrpcUrlView(ttk.Frame):
     """
@@ -341,15 +341,16 @@ class GrpcCallPresenter:
     The Presenter in the MVP pattern. It responds to view events,
     calls the model/service classes as needed, and then instructs the view to update.
     """
-    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser, env_model):
+    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser, env_model: EnvironmentModel):
         self.view = view
         self.grpc_caller = grpc_caller
         self.saved_calls_manager = saved_calls_manager
         self.protoset_parser = protoset_parser
-        self.env_model = env_model  # <-- Save the environment model for lookup
+        self.env_model = env_model  # Save the environment model for variable lookup
         self.calls_history = self.saved_calls_manager.load_saved_calls()
         self.saved_body = None
 
+        # Register callbacks
         self.view.set_on_protoset_change(self.handle_protoset_change)
         self.view.set_on_method_select(self.handle_method_select)
         self.view.set_on_make_call(self.handle_make_call)
@@ -379,24 +380,15 @@ class GrpcCallPresenter:
         details = self.view.get_call_details()
         body = self.view.get_body_data()
 
-        # --- Perform bracket substitution using the selected environment ---
-        def substitute_env(text, env_vars):
-            pattern = re.compile(r"{{\s*(\w+)\s*}}")
-            def replace(match):
-                var_name = match.group(1)
-                return env_vars.get(var_name, match.group(0))
-            return pattern.sub(replace, text)
-
+        # Retrieve environment variables from the selected environment
         selected_env = self.view.get_selected_environment()
-        env_vars = {}
-        if selected_env:
-            env_vars = self.env_model.get_environment(selected_env)
+        env_vars = self.env_model.get_environment(selected_env) if selected_env else {}
 
+        # Apply substitution on all details and body using the decoupled utility
         for key, value in details.items():
-            details[key] = substitute_env(value, env_vars)
+            details[key] = substitute_env_vars(value, env_vars)
         if body:
-            body = substitute_env(body, env_vars)
-        # ---------------------------------------------------------------------
+            body = substitute_env_vars(body, env_vars)
 
         if not details["protoset"] or not details["server"] or not details["method"]:
             self.view.display_output("Error: Missing required fields (Protoset, Server, or Call Name).\n")
