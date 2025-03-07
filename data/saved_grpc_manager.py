@@ -37,8 +37,4 @@ class SavedGrpcManager:
         self.save_call()
 
     def get_display_text(self, call_info: dict):
-        return (
-            f"{call_info.get('server', '')} - "
-            f"{call_info.get('method', '')} - "
-            f"Body: {'Yes' if call_info.get('body') else 'No'}"
-        )
+        return (f"{call_info.get('method', '')}")
