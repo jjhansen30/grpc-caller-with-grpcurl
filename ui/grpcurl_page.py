@@ -6,6 +6,7 @@ from google.protobuf.descriptor import Descriptor
 from google.protobuf import descriptor_pb2
 from data.saved_grpc_manager import SavedGrpcManager
 from network.grpc_caller import GrpcCaller
+from ui.environments_page import substitute_env_vars, EnvironmentModel
 
 class GrpcUrlView(ttk.Frame):
     """
@@ -33,10 +34,12 @@ class GrpcUrlView(ttk.Frame):
         self.method_var = tk.StringVar()
         self.plaintext_var = tk.BooleanVar(value=False)
 
-        # Port Forward Command
+        # --- Updated Environment Drop Down ---
         ttk.Label(self.input_frame, text="Environment").grid(row=0, column=0, sticky=tk.W, pady=2)
-        self.environment_drop_down = ttk.Combobox(self.input_frame, textvariable=self.method_var, width=48, state='readonly')
+        self.environment_var = tk.StringVar()  # new dedicated variable
+        self.environment_drop_down = ttk.Combobox(self.input_frame, textvariable=self.environment_var, width=48, state='readonly')
         self.environment_drop_down.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
+        # ---------------------------------------
 
         # Authorization Cookie
         ttk.Label(self.input_frame, text="Authorization Cookie (s=):").grid(row=1, column=0, sticky=tk.W, pady=2)
@@ -112,6 +115,18 @@ class GrpcUrlView(ttk.Frame):
         self.method_var.trace_add("write", lambda *args: self._on_method_select())
         self.saved_call_list_box.bind("<<ListboxSelect>>", lambda e: self._on_saved_call_select())
 
+    # --- New helper methods for Environment drop down ---
+    def set_environment_options(self, options):
+        self.environment_drop_down['values'] = options
+        if options:
+            self.environment_var.set(options[0])
+        else:
+            self.environment_var.set("")
+
+    def get_selected_environment(self):
+        return self.environment_var.get()
+    # ---------------------------------------------------
+
     # Methods to allow the Presenter to register callbacks
     def set_on_protoset_change(self, handler):
         self._external_protoset_change = handler
@@ -164,13 +179,10 @@ class GrpcUrlView(ttk.Frame):
                 widget_ref = widget_info["widget_ref"]
                 # Get the stripped value
                 field_value = widget_ref.get().strip()
-                
-                # Only include if it's not empty
                 if field_value:
                     body_dict[field_name] = field_value
 
         return json.dumps(body_dict) if body_dict else ""
-
 
     # Methods for the Presenter to update the view
     def set_call_names(self, call_names):
@@ -181,13 +193,6 @@ class GrpcUrlView(ttk.Frame):
             self.method_var.set("")
 
     def build_body_fields(self, fields_with_enums):
-        """
-        fields_with_enums is expected to be a list of tuples:
-        [
-          (field_descriptor, [possible_values]), ...
-        ]
-        The second element is a list of strings if it's an enum; otherwise it is empty.
-        """
         for widget in self.body_fields_frame.winfo_children():
             widget.destroy()
         self.dynamic_body_fields = {}
@@ -202,7 +207,7 @@ class GrpcUrlView(ttk.Frame):
             field_name = field_desc.name
             ttk.Label(self.body_fields_frame, text=f"{field_name}:").grid(row=row_index, column=0, sticky=tk.W, padx=(0, 5), pady=2)
 
-            if enum_values:  # === MODIFICATION === If it's an enum, use a Combobox
+            if enum_values:
                 combobox = ttk.Combobox(self.body_fields_frame, values=enum_values, width=48, state='readonly')
                 combobox.grid(row=row_index, column=1, sticky=tk.W, pady=2)
                 self.dynamic_body_fields[field_name] = {
@@ -270,11 +275,6 @@ class ProtosetParser:
 
     @staticmethod
     def get_method_request_fields(protoset_path, call_name):
-        """
-        Returns a list of tuples: (field_descriptor, list_of_enum_values_if_any).
-        If the field is an enum, list_of_enum_values_if_any will be the enumerated values.
-        Otherwise, it will be an empty list.
-        """
         try:
             with open(protoset_path, "rb") as f:
                 fds = descriptor_pb2.FileDescriptorSet()
@@ -282,18 +282,14 @@ class ProtosetParser:
         except Exception:
             return []
 
-        # Collect message descriptors
         messages = {}
-        # Collect enum descriptors
         enums = {}
 
         def add_messages(prefix, message_list, enum_list):
             for msg in message_list:
                 full_msg_name = f"{prefix}.{msg.name}" if prefix else msg.name
                 messages[full_msg_name] = msg
-                # Recurse nested messages
                 add_messages(full_msg_name, msg.nested_type, msg.enum_type)
-            # Also collect top-level enums
             for en in enum_list:
                 full_enum_name = f"{prefix}.{en.name}" if prefix else en.name
                 enums[full_enum_name] = en
@@ -302,7 +298,6 @@ class ProtosetParser:
             package = file_desc.package.strip() if file_desc.package else ""
             add_messages(package, file_desc.message_type, file_desc.enum_type)
 
-        # Resolve method -> input message
         parts = call_name.split('.')
         if len(parts) < 2:
             return []
@@ -310,7 +305,6 @@ class ProtosetParser:
         service_name = parts[-2]
         package = ".".join(parts[:-2])
 
-        # Find that input message descriptor
         input_msg = None
         for file_desc in fds.file:
             file_package = file_desc.package.strip() if file_desc.package else ""
@@ -327,12 +321,10 @@ class ProtosetParser:
         if not input_msg:
             return []
 
-        # Build up the list: (field_descriptor, [possible_enum_vals_if_any])
         output = []
         for field in input_msg.field:
-            # If it's an enum, gather possible values
             if field.type == descriptor_pb2.FieldDescriptorProto.TYPE_ENUM:
-                enum_type_name = field.type_name.lstrip('.')  # e.g. .some_package.MyEnum
+                enum_type_name = field.type_name.lstrip('.')
                 enum_descriptor = enums.get(enum_type_name)
                 if enum_descriptor:
                     possible_values = [v.name for v in enum_descriptor.value]
@@ -349,15 +341,16 @@ class GrpcCallPresenter:
     The Presenter in the MVP pattern. It responds to view events,
     calls the model/service classes as needed, and then instructs the view to update.
     """
-    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser):
+    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser, env_model: EnvironmentModel):
         self.view = view
         self.grpc_caller = grpc_caller
         self.saved_calls_manager = saved_calls_manager
         self.protoset_parser = protoset_parser
+        self.env_model = env_model  # Save the environment model for variable lookup
         self.calls_history = self.saved_calls_manager.load_saved_calls()
         self.saved_body = None
 
-        # Register callbacks from the view.
+        # Register callbacks
         self.view.set_on_protoset_change(self.handle_protoset_change)
         self.view.set_on_method_select(self.handle_method_select)
         self.view.set_on_make_call(self.handle_make_call)
@@ -365,7 +358,6 @@ class GrpcCallPresenter:
         self.view.set_on_edit_call(self.handle_edit_call)
         self.view.set_on_saved_call_select(self.handle_saved_call_select)
 
-        # Initialize the saved calls list.
         self.view.update_saved_calls_list(self.calls_history, self.saved_calls_manager.get_display_text)
 
     def handle_protoset_change(self, protoset_path):
@@ -380,7 +372,6 @@ class GrpcCallPresenter:
             return
         fields_with_enums = self.protoset_parser.get_method_request_fields(protoset_path, call_name)
         self.view.build_body_fields(fields_with_enums)
-        # If we've just loaded a saved call's body, populate it now
         if self.saved_body:
             self.view.populate_body_fields(self.saved_body)
             self.saved_body = None
@@ -388,6 +379,17 @@ class GrpcCallPresenter:
     def handle_make_call(self):
         details = self.view.get_call_details()
         body = self.view.get_body_data()
+
+        # Retrieve environment variables from the selected environment
+        selected_env = self.view.get_selected_environment()
+        env_vars = self.env_model.get_environment(selected_env) if selected_env else {}
+
+        # Apply substitution on all details and body using the decoupled utility
+        for key, value in details.items():
+            details[key] = substitute_env_vars(value, env_vars)
+        if body:
+            body = substitute_env_vars(body, env_vars)
+
         if not details["protoset"] or not details["server"] or not details["method"]:
             self.view.display_output("Error: Missing required fields (Protoset, Server, or Call Name).\n")
             return
@@ -449,10 +451,6 @@ class GrpcCallPresenter:
                 self.saved_body = None
         else:
             self.saved_body = None
-        # Trigger a re-build of the body fields for the newly set method
-        # so that they get repopulated after building.
-        # If a valid method is set, handle_method_select will call build_body_fields again
-        # and then populate with self.saved_body afterwards.
         protoset_path = call_info.get("protoset", "")
         method_name = call_info.get("method", "")
         if protoset_path and method_name and os.path.exists(protoset_path):
