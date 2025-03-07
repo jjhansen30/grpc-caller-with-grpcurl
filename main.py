@@ -7,6 +7,7 @@ from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
 import tkinter as tk
 import constants as const
+import feature_flags as flag
 
 class MainView(tk.Tk):
     """
@@ -26,8 +27,10 @@ class MainView(tk.Tk):
         self.environment_page = EnvironVarView(self.notebook)
 
         self.notebook.add(self.grpcurl_page, text="grpcurl", padding=self.notebook_padding)
-        self.notebook.add(self.curl_page, text="curl", padding=self.notebook_padding)
-        self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
+        if flag.SHOW_CURL_PAGE:
+            self.notebook.add(self.curl_page, text="curl", padding=self.notebook_padding)
+        if flag.SHOW_AUTOMATIONS_PAGE:
+            self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
         self.notebook.add(self.environment_page, text="Environment variables", padding=self.notebook_padding)
 
         self.model = EnvironmentModel(const.SAVED_ENVIRONMENTS_FILE)
