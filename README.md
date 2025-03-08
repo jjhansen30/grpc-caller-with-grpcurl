@@ -1,4 +1,4 @@
-# API Caller with gRPCurl and curl
+# API Caller with gRPCurl
 
 A desktop GUI application built with Tkinter that lets you make gRPC calls using the [grpcurl](https://github.com/fullstorydev/grpcurl) tool. The application also provides functionality for managing environment variables, saving and editing call details, and (optionally) supports curl calls and automations (currently as placeholders).
 
