@@ -65,7 +65,7 @@ class EnvironVarView(ttk.Frame):
         # Right side: Environment and variable entries.
         self.var_config_frame = ttk.Frame(main_container)
         self.var_config_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=8)
-        # We need 3 columns now (Variable, Value, then an extra for the new button arrangement).
+        # We need 3 columns now (Variable, Value, then an extra for the button arrangement).
         self.var_config_frame.columnconfigure(0, weight=1)
         self.var_config_frame.columnconfigure(1, weight=1)
         self.var_config_frame.columnconfigure(2, weight=1)
@@ -76,29 +76,35 @@ class EnvironVarView(ttk.Frame):
         self.env_entry = ttk.Entry(self.var_config_frame, justify="center")
         self.env_entry.grid(row=1, column=0, columnspan=3, pady=(0,10))
 
+        # Configure a style for red text.
+        style = ttk.Style()
+        style.configure("Red.TLabel", foreground="red")
+
+        # Delete button.
+        self.edit_button = ttk.Label(self.var_config_frame, text="Delete Environment",
+                                     cursor="hand2", style="Red.TLabel")
+        self.edit_button.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(0,10))
+        self.edit_button.bind("<Button-1>", self.clear_variable_entries)
+
         # Variable configuration headers.
-        ttk.Label(self.var_config_frame, text="Variable").grid(row=2, column=0, sticky="ew")
-        ttk.Label(self.var_config_frame, text="Value").grid(row=2, column=1, sticky="ew")
+        ttk.Label(self.var_config_frame, text="Variable").grid(row=3, column=0, sticky="ew")
+        ttk.Label(self.var_config_frame, text="Value").grid(row=3, column=1, sticky="ew")
 
         # Initial row for variable configuration.
         var_entry = ttk.Entry(self.var_config_frame)
-        var_entry.grid(row=3, column=0, sticky="ew")
+        var_entry.grid(row=4, column=0, sticky="ew")
         self.variable_entries.append(var_entry)
         val_entry = ttk.Entry(self.var_config_frame)
-        val_entry.grid(row=3, column=1, sticky="ew")
+        val_entry.grid(row=4, column=1, sticky="ew")
         self.value_entries.append(val_entry)
 
-        # Set the starting row index for add row, edit, and save buttons.
-        self.add_button_row = 4
+        # Set the starting row index for add row and save buttons.
+        self.add_button_row = 5
 
         # Add row label (to add more variable rows).
         self.add_row_label = ttk.Label(self.var_config_frame, text="+", cursor="hand2")
         self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
         self.add_row_label.bind("<Button-1>", self.add_row)
-
-        # Edit button.
-        self.edit_button = ttk.Label(self.var_config_frame, text="Edit", cursor="hand2")
-        self.edit_button.grid(row=self.add_button_row, column=1, sticky="ew")
 
         # Save button.
         self.save_button = ttk.Label(self.var_config_frame, text="Save", cursor="hand2")
@@ -122,7 +128,6 @@ class EnvironVarView(ttk.Frame):
         self.add_button_row += 1
         # Re-grid the buttons so they move down to the next row.
         self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
-        self.edit_button.grid(row=self.add_button_row, column=1, sticky="ew")
         self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
 
     def on_listbox_select(self, event):
@@ -139,7 +144,7 @@ class EnvironVarView(ttk.Frame):
         self.edit_button.bind("<Button-1>", callback)
 
     def set_presenter(self, presenter):
-        self.presenter = presenter
+        self.presenter: EnvironmentPresenter = presenter
 
     def get_environment_name(self):
         return self.env_entry.get().strip()
@@ -159,7 +164,7 @@ class EnvironVarView(ttk.Frame):
         for name in env_names:
             self.env_list_box.insert(tk.END, name)
 
-    def clear_variable_entries(self):
+    def clear_variable_entries(self, event=None):
         # Remove current variable/value entry widgets.
         for widget in self.variable_entries + self.value_entries:
             widget.destroy()
@@ -169,8 +174,8 @@ class EnvironVarView(ttk.Frame):
     def populate_variables(self, var_dict):
         # Remove any current variable entries.
         self.clear_variable_entries()
-        # Starting row for variable entries.
-        row_index = 3
+        # Starting row for variable entries (shifted down by one row to account for header rows).
+        row_index = 4
         for key, value in var_dict.items():
             var_entry = ttk.Entry(self.var_config_frame)
             var_entry.insert(0, key)
@@ -181,10 +186,9 @@ class EnvironVarView(ttk.Frame):
             val_entry.grid(row=row_index, column=1, sticky="ew")
             self.value_entries.append(val_entry)
             row_index += 1
-        # Reset the add row button and edit/save buttons to follow the last entry.
+        # Reset the add row and save buttons to follow the last entry.
         self.add_button_row = row_index
         self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
-        self.edit_button.grid(row=self.add_button_row, column=1, sticky="ew")
         self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
 
     # New method to update the environment name entry.
@@ -241,35 +245,6 @@ class EnvironmentPresenter:
         self.view.set_environment_name(env_name)
         env_data = self.model.get_environment(env_name)
         self.view.populate_variables(env_data)
-
-# Model: Handles JSON file operations.
-class EnvironmentModel:
-    def __init__(self, filename: str):
-        self.filename = filename
-        self.data = {}
-        self.load()
-
-    def load(self):
-        if os.path.exists(self.filename):
-            with open(self.filename, "r") as f:
-                try:
-                    self.data = json.load(f)
-                except json.JSONDecodeError:
-                    self.data = {}
-        else:
-            self.data = {}
-
-    def save_environment(self, env_name, variables):
-        # Save (or update) the environment in the model.
-        self.data[env_name] = variables
-        with open(self.filename, "w") as f:
-            json.dump(self.data, f, indent=4)
-
-    def get_environment(self, env_name):
-        return self.data.get(env_name, {})
-
-    def get_all_environment_names(self):
-        return list(self.data.keys())
 
 # Main application
 class _MockParent(tk.Tk):
