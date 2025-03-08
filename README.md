@@ -8,7 +8,6 @@ This project offers a simple user interface to:
 - **Make gRPC calls:** Compose and execute gRPC calls by specifying details such as protoset files, server addresses, and methods.
 - **Manage Environment Variables:** Save and substitute environment variables within call parameters using a dedicated page.
 - **Save & Edit Calls:** Persist call configurations into JSON files so that you can reuse or modify them later.
-- **Pluggable Features:** Optionally display curl and automation pages via feature flags (currently disabled).
 
 The application uses the Model-View-Presenter (MVP) pattern to separate concerns between UI components and business logic.
 
@@ -16,35 +15,21 @@ The application uses the Model-View-Presenter (MVP) pattern to separate concerns
 
 - **constants.py**  
   Defines key constants such as file paths, the application name, and window geometry.  
-  :contentReference[oaicite:0]{index=0}
 
 - **feature_flags.py**  
-  Contains feature flags to toggle optional tabs (e.g., curl and automations pages). By default, these features are disabled.  
-  :contentReference[oaicite:1]{index=1}
+  Contains feature flags to toggle optional tabs (e.g., curl and automations pages). By default, these features are disabled.
 
 - **main.py**  
   The entry point for the application. It initializes the main Tkinter window with a Notebook containing various pages (gRPC, environments, and optionally curl and automations). It also sets up the necessary presenters and models.  
-  :contentReference[oaicite:2]{index=2}
 
 - **saved_grpc_manager.py**  
   Manages the persistence of gRPC call details. It handles loading, appending, updating, and saving call information to a JSON file.  
-  :contentReference[oaicite:3]{index=3}
 
 - **grpc_caller.py**  
   Builds and executes the grpcurl command based on user inputs (such as whether to use plaintext, authorization details, and request body data).  
-  :contentReference[oaicite:4]{index=4}
-
-- **automations_page.py**  
-  Provides a placeholder view for future automations functionality.  
-  :contentReference[oaicite:5]{index=5}
-
-- **curl_page.py**  
-  Provides a placeholder view for curl-based API calls.  
-  :contentReference[oaicite:6]{index=6}
 
 - **environments_page.py**  
   Contains the model, view, and presenter for managing environment variables. This page allows users to add, edit, delete, and substitute environment variable values (using the format `{{variable}}`) in API call details.  
-  :contentReference[oaicite:7]{index=7}
 
 - **grpcurl_page.py**  
   The primary interface for making gRPC calls. This page includes:
@@ -53,7 +38,6 @@ The application uses the Model-View-Presenter (MVP) pattern to separate concerns
   - A saved calls list to quickly recall previous configurations.
   - Integration with the protoset parser to extract gRPC service methods and build corresponding input forms.
   - Handlers for executing, saving, and editing call details.  
-  :contentReference[oaicite:8]{index=8}
 
 ## Installation
 
