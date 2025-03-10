@@ -6,7 +6,6 @@ from ui.automations_page import AutomationsView
 from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
 import tkinter as tk
-import constants as const
 import feature_flags as flag
 
 class MainView(tk.Tk):
