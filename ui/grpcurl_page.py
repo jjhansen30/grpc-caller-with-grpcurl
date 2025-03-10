@@ -5,7 +5,7 @@ from tkinter import ttk
 from google.protobuf.descriptor import Descriptor
 from google.protobuf import descriptor_pb2
 from data.saved_grpc_manager import SavedGrpcManager
-from network.grpc_caller import GrpcCaller
+from network.network_caller import GrpcCaller
 from ui.environments_page import substitute_env_vars, EnvironmentModel
 
 class GrpcUrlView(ttk.Frame):

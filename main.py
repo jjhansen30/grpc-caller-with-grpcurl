@@ -1,4 +1,4 @@
-from network.grpc_caller import GrpcCaller
+from network.network_caller import GrpcCaller
 from ui.grpcurl_page import GrpcUrlView, ProtosetParser, GrpcCallPresenter
 from ui.curl_page import CurlView
 from ui.environments_page import EnvironVarView, EnvironmentModel, EnvironmentPresenter
