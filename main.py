@@ -15,8 +15,8 @@ class MainView(tk.Tk):
     """
     def __init__(self):
         super().__init__()
-        self.title(const.APP_NAME)
-        self.geometry(const.GEOMETRY)
+        self.title("API Caller with gRPCurl and curl")
+        self.geometry("900x900")
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
         self.notebook_padding = 8
@@ -33,7 +33,7 @@ class MainView(tk.Tk):
             self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
         self.notebook.add(self.environment_page, text="Environment variables", padding=self.notebook_padding)
 
-        self.model = EnvironmentModel(const.SAVED_ENVIRONMENTS_FILE)
+        self.model = EnvironmentModel("data/environments.json")
         self.presenter = EnvironmentPresenter(self.environment_page, self.model)
         
         # --- Update grpcurl page drop down with Environment names ---
@@ -43,7 +43,7 @@ class MainView(tk.Tk):
 if __name__ == "__main__":
     grpc_caller = GrpcCaller()
     protoset_parser = ProtosetParser()
-    saved_calls_manager = SavedGrpcManager(const.GRPC_CALLS_FILE)
+    saved_calls_manager = SavedGrpcManager("data/grpc_calls.json")
     main_view = MainView()
     # Pass the EnvironmentModel instance to GrpcCallPresenter for variable substitution
     GrpcCallPresenter(main_view.grpcurl_page, grpc_caller, saved_calls_manager, protoset_parser, main_view.model)

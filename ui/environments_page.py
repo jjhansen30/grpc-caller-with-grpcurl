@@ -1,7 +1,6 @@
 import json
 import os
 import tkinter as tk
-import constants as const
 import re
 from tkinter import ttk
 
@@ -251,7 +250,7 @@ class _MockParent(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("API Caller with gRPCurl and curl")
-        self.geometry(const.GEOMETRY)
+        self.geometry("900x900")
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
@@ -259,7 +258,7 @@ class _MockParent(tk.Tk):
         self.notebook.add(self.environment_view, text="Environment Variables")
 
         # Instantiate the Model and Presenter.
-        self.model = EnvironmentModel(filename=const.SAVED_ENVIRONMENTS_FILE)
+        self.model = EnvironmentModel(filename="data/environments.json")
         self.presenter = EnvironmentPresenter(self.environment_view, self.model)
 
 def substitute_env_vars(text: str, env_vars: dict):
