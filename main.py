@@ -1,7 +1,7 @@
 from network.network_caller import GrpcCaller
 from ui.grpcurl_page import GrpcUrlView, ProtosetParser, GrpcCallPresenter
 from ui.curl_page import CurlView
-from ui.environments_page import EnvironVarView, EnvironmentModel, EnvironmentPresenter
+from ui.environments_page import EnvironVarView, EnvironmentRepo, EnvironmentPresenter
 from ui.automations_page import AutomationsView
 from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
@@ -32,7 +32,7 @@ class MainView(tk.Tk):
             self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
         self.notebook.add(self.environment_page, text="Environment variables", padding=self.notebook_padding)
 
-        self.model = EnvironmentModel("data/environments.json")
+        self.model = EnvironmentRepo("data/environments.json")
         self.presenter = EnvironmentPresenter(self.environment_page, self.model)
         
         # --- Update grpcurl page drop down with Environment names ---

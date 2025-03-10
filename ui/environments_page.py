@@ -4,42 +4,6 @@ import tkinter as tk
 import re
 from tkinter import ttk
 
-# Model: Handles JSON file operations.
-class EnvironmentModel:
-    def __init__(self, filename: str):
-        self.filename = filename
-        self.data = {}
-        self.load()
-
-    def load(self):
-        if os.path.exists(self.filename):
-            with open(self.filename, "r") as f:
-                try:
-                    self.data = json.load(f)
-                except json.JSONDecodeError:
-                    self.data = {}
-        else:
-            self.data = {}
-
-    def save_environment(self, env_name, variables):
-        # Save (or update) the environment in the model.
-        self.data[env_name] = variables
-        with open(self.filename, "w") as f:
-            json.dump(self.data, f, indent=4)
-
-    def delete_environment(self, env_name):
-        # Remove the entire environment entry from the JSON if it exists.
-        if env_name in self.data:
-            del self.data[env_name]
-            with open(self.filename, "w") as f:
-                json.dump(self.data, f, indent=4)
-
-    def get_environment(self, env_name):
-        return self.data.get(env_name, {})
-
-    def get_all_environment_names(self):
-        return list(self.data.keys())
-
 # View: Displays the UI and exposes methods for data access and update.
 class EnvironVarView(ttk.Frame):
     def __init__(self, parent):
@@ -201,9 +165,45 @@ class EnvironVarView(ttk.Frame):
         # Clear after 5 seconds
         self.status_label.after(5000, lambda: self.status_label.config(text=""))
 
+# Model: Handles JSON file operations.
+class EnvironmentRepo:
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.data = {}
+        self.load()
+
+    def load(self):
+        if os.path.exists(self.filename):
+            with open(self.filename, "r") as f:
+                try:
+                    self.data = json.load(f)
+                except json.JSONDecodeError:
+                    self.data = {}
+        else:
+            self.data = {}
+
+    def save_environment(self, env_name, variables):
+        # Save (or update) the environment in the model.
+        self.data[env_name] = variables
+        with open(self.filename, "w") as f:
+            json.dump(self.data, f, indent=4)
+
+    def delete_environment(self, env_name):
+        # Remove the entire environment entry from the JSON if it exists.
+        if env_name in self.data:
+            del self.data[env_name]
+            with open(self.filename, "w") as f:
+                json.dump(self.data, f, indent=4)
+
+    def get_environment(self, env_name):
+        return self.data.get(env_name, {})
+
+    def get_all_environment_names(self):
+        return list(self.data.keys())
+
 # Presenter: Mediates between the View and Model.
 class EnvironmentPresenter:
-    def __init__(self, view: EnvironVarView, model: EnvironmentModel):
+    def __init__(self, view: EnvironVarView, model: EnvironmentRepo):
         self.view = view
         self.model = model
         self.view.set_presenter(self)
@@ -258,7 +258,7 @@ class _MockParent(tk.Tk):
         self.notebook.add(self.environment_view, text="Environment Variables")
 
         # Instantiate the Model and Presenter.
-        self.model = EnvironmentModel(filename="data/environments.json")
+        self.model = EnvironmentRepo(filename="data/environments.json")
         self.presenter = EnvironmentPresenter(self.environment_view, self.model)
 
 def substitute_env_vars(text: str, env_vars: dict):

@@ -6,7 +6,7 @@ from google.protobuf.descriptor import Descriptor
 from google.protobuf import descriptor_pb2
 from data.saved_grpc_manager import SavedGrpcManager
 from network.network_caller import GrpcCaller
-from ui.environments_page import substitute_env_vars, EnvironmentModel
+from ui.environments_page import substitute_env_vars, EnvironmentRepo
 
 class GrpcUrlView(ttk.Frame):
     """
@@ -341,7 +341,7 @@ class GrpcCallPresenter:
     The Presenter in the MVP pattern. It responds to view events,
     calls the model/service classes as needed, and then instructs the view to update.
     """
-    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser, env_model: EnvironmentModel):
+    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser, env_model: EnvironmentRepo):
         self.view = view
         self.grpc_caller = grpc_caller
         self.saved_calls_manager = saved_calls_manager
