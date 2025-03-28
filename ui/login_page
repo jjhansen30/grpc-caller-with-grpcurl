@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import subprocess  # Used to execute the curl command
-import json        # For building the JSON payload
+import json        # For building the JSON payload and pretty formatting
 
 from environments_page import EnvironVarView, EnvironmentPresenter, EnvironmentRepo
 
@@ -86,8 +86,15 @@ class LoginView(ttk.Frame):
         except subprocess.CalledProcessError as e:
             response = e.stderr if e.stderr else str(e)
         
-        # Display the command and its response in the output text widget.
-        output = f"Command: {cmd_str}\n\nResponse:\n{response}"
+        # Attempt to pretty print the response if it's valid JSON
+        try:
+            parsed = json.loads(response)
+            pretty_response = json.dumps(parsed, indent=4)
+        except Exception:
+            pretty_response = response
+        
+        # Display the command and its (pretty printed) response in the output text widget.
+        output = f"Command: {cmd_str}\n\nResponse:\n{pretty_response}"
         self.output_text.delete("1.0", tk.END)
         self.output_text.insert(tk.END, output)
 
