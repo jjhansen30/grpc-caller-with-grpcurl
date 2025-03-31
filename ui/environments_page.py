@@ -221,9 +221,10 @@ class EnvironmentRepo:
 
 # Presenter: Mediates between the View and Model.
 class EnvironmentPresenter:
-    def __init__(self, view: EnvironVarView, model: EnvironmentRepo):
+    def __init__(self, view: EnvironVarView, model: EnvironmentRepo, on_change_callback=None):
         self.view = view
         self.model = model
+        self.on_change_callback = on_change_callback
         self.view.set_presenter(self)
         self.view.set_save_callback(self.on_save)
         self.view.set_edit_callback(self.on_edit)
@@ -232,6 +233,8 @@ class EnvironmentPresenter:
     def update_environment_list(self):
         env_names = self.model.get_all_environment_names()
         self.view.update_list_box(env_names)
+        if self.on_change_callback:
+            self.on_change_callback(env_names)
 
     def on_save(self, event):
         env_name = self.view.get_environment_name()
@@ -244,7 +247,6 @@ class EnvironmentPresenter:
         self.view.set_status(f"Environment '{env_name}' saved!")
 
     def on_edit(self, event):
-        # Example: remove the selected environment. Adapt as needed for your “add/remove” logic.
         selection = self.view.env_list_box.curselection()
         if not selection:
             self.view.set_status("No environment selected to edit.")

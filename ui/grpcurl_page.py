@@ -341,16 +341,17 @@ class GrpcCallPresenter:
     The Presenter in the MVP pattern. It responds to view events,
     calls the model/service classes as needed, and then instructs the view to update.
     """
-    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, protoset_parser: ProtosetParser, env_model: EnvironmentRepo):
+    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, 
+                 protoset_parser: ProtosetParser, env_model: EnvironmentRepo):
         self.view = view
         self.grpc_caller = grpc_caller
         self.saved_calls_manager = saved_calls_manager
         self.protoset_parser = protoset_parser
-        self.env_model = env_model  # Save the environment model for variable lookup
+        self.env_model = env_model
         self.calls_history = self.saved_calls_manager.load_saved_calls()
         self.saved_body = None
 
-        # Register callbacks
+        # Register callbacks for various UI events.
         self.view.set_on_protoset_change(self.handle_protoset_change)
         self.view.set_on_method_select(self.handle_method_select)
         self.view.set_on_make_call(self.handle_make_call)
@@ -359,6 +360,14 @@ class GrpcCallPresenter:
         self.view.set_on_saved_call_select(self.handle_saved_call_select)
 
         self.view.update_saved_calls_list(self.calls_history, self.saved_calls_manager.get_display_text)
+
+        # --- NEW: Initialize the environment drop down with the current options ---
+        initial_env_names = self.env_model.get_all_environment_names()
+        self.refresh_environment_options(initial_env_names)
+
+    # NEW helper to update the drop down options.
+    def refresh_environment_options(self, env_names):
+        self.view.set_environment_options(env_names)
 
     def handle_protoset_change(self, protoset_path):
         if not protoset_path or not os.path.exists(protoset_path):
