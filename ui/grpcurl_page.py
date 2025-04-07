@@ -399,6 +399,21 @@ class GrpcCallPresenter:
         if body:
             body = substitute_env_vars(body, env_vars)
 
+        # Check if any unsubstituted placeholders remain
+        unsubstituted_fields = []
+        for key, value in details.items():
+            if "{{" in value or "}}" in value:
+                unsubstituted_fields.append(key)
+        if body and ("{{" in body or "}}" in body):
+            unsubstituted_fields.append("body")
+        if unsubstituted_fields:
+            self.view.display_output(
+                "Error: Unsubstituted environment variables found in fields: " +
+                ", ".join(unsubstituted_fields) +
+                ". Please define the missing variables."
+            )
+            return
+
         if not details["protoset"] or not details["server"] or not details["method"]:
             self.view.display_output("Error: Missing required fields (Protoset, Server, or Call Name).\n")
             return

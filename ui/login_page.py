@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-import subprocess  # Used to execute the curl command
-import json        # For building the JSON payload and pretty formatting
+import subprocess
+import json
 
 from environments_page import EnvironVarView, EnvironmentPresenter, EnvironmentRepo
 
