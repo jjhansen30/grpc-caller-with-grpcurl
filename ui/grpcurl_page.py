@@ -1,12 +1,80 @@
 import json
 import tkinter as tk
 import os
+import subprocess
 from tkinter import ttk
 from google.protobuf.descriptor import Descriptor
 from google.protobuf import descriptor_pb2
-from data.saved_grpc_manager import SavedGrpcManager
-from network.network_caller import GrpcCaller
-from ui.environments_page import substitute_env_vars, EnvironmentRepo
+from environments_page import substitute_env_vars, EnvironmentRepo
+
+class GrpcCaller:
+    """Handles construction and execution of the grpcurl command."""
+    def build_command(self, plaintext, cookie, bearer_token, protoset, server, method, body):
+        command = ["grpcurl"]
+        if plaintext:
+            command.append("-plaintext")
+        if cookie:
+            command.extend(["-H", f"Cookie:s={cookie}"])
+        elif bearer_token:
+            command.extend(["-H", f"authorization: Bearer {bearer_token}"])
+        command.extend(["--protoset", protoset])
+        if body:
+            command.extend(["-d", body])
+        command.append(server)
+        command.append(method)
+        return command
+
+    def execute_call(self, plaintext, cookie, bearer_token, protoset, server, call_name, body):
+        command = self.build_command(plaintext, cookie, bearer_token, protoset, server, call_name, body)
+        try:
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            stdout, stderr = process.communicate()
+            return process.returncode, stdout, stderr, command
+        except Exception as e:
+            return None, "", f"Error while running grpcurl: {e}", command
+
+class SavedGrpcManager:
+    """Manages persistence of grpcurl call details."""
+    def __init__(self, history_file: str):
+        self.history_file = history_file
+        self.saved_calls = []
+
+    def load_saved_calls(self) -> list:
+        if not os.path.exists(self.history_file):
+            self.saved_calls = []
+        else:
+            try:
+                with open(self.history_file, "r") as f:
+                    data = json.load(f)
+                    self.saved_calls = data if isinstance(data, list) else []
+            except (json.JSONDecodeError, IOError):
+                self.saved_calls = []
+        return self.saved_calls
+
+    def save_call(self):
+        try:
+            with open(self.history_file, "w") as f:
+                json.dump(self.saved_calls, f, indent=4)
+        except IOError as e:
+            raise Exception(f"Error saving history: {e}")
+
+    def append_call(self, call_info):
+        self.saved_calls.append(call_info)
+        self.save_call()
+
+    def update_call(self, index, call_info):
+        if index < 0 or index >= len(self.saved_calls):
+            raise IndexError("Invalid call index")
+        self.saved_calls[index] = call_info
+        self.save_call()
+
+    def get_display_text(self, call_info: dict):
+        return (f"{call_info.get('method', '')}")
 
 class GrpcUrlView(ttk.Frame):
     """
@@ -341,11 +409,10 @@ class GrpcCallPresenter:
     The Presenter in the MVP pattern. It responds to view events,
     calls the model/service classes as needed, and then instructs the view to update.
     """
-    def __init__(self, view: GrpcUrlView, grpc_caller: GrpcCaller, saved_calls_manager: SavedGrpcManager, 
-                 protoset_parser: ProtosetParser, env_model: EnvironmentRepo):
+    def __init__(self, view: GrpcUrlView, protoset_parser: ProtosetParser, env_model: EnvironmentRepo):
         self.view = view
-        self.grpc_caller = grpc_caller
-        self.saved_calls_manager = saved_calls_manager
+        self.grpc_caller = GrpcCaller()
+        self.saved_calls_manager = SavedGrpcManager("grpc_calls.json")
         self.protoset_parser = protoset_parser
         self.env_model = env_model
         self.calls_history = self.saved_calls_manager.load_saved_calls()
@@ -483,3 +550,45 @@ class GrpcCallPresenter:
             if self.saved_body:
                 self.view.populate_body_fields(self.saved_body)
                 self.saved_body = None
+
+class MockMainView(tk.Tk):
+    """
+    Main application window that holds a Notebook with separate pages.
+    """
+    def __init__(self):
+        super().__init__()
+        self.title("API Caller with gRPCurl and curl")
+        self.geometry("900x900")
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+        self.notebook_padding = 8
+
+        self.grpcurl_page = GrpcUrlView(self.notebook)
+        self.environment_page = EnvironVarView(self.notebook)
+
+        self.notebook.add(self.grpcurl_page, text="grpcurl", padding=self.notebook_padding)
+        self.notebook.add(self.environment_page, text="Environment variables", padding=self.notebook_padding)
+
+        self.model = EnvironmentRepo("data/environments.json")
+        self.grpcurl_page.set_environment_options(self.model.get_all_environment_names())
+
+if __name__ == "__main__":
+    from environments_page import EnvironVarView, EnvironmentRepo, EnvironmentPresenter
+    protoset_parser = ProtosetParser()
+    main_view = MockMainView()
+    
+    # First, create the gRPC presenter.
+    grpc_presenter = GrpcCallPresenter(
+        main_view.grpcurl_page,
+        protoset_parser,
+        main_view.model
+    )
+    
+    # Then, create the Environment presenter and pass the gRPC presenter's refresh method as callback.
+    env_presenter = EnvironmentPresenter(
+        main_view.environment_page,
+        main_view.model,
+        on_change_callback=grpc_presenter.refresh_environment_options
+    )
+    
+    main_view.mainloop()

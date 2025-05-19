@@ -1,9 +1,7 @@
-from network.network_caller import GrpcCaller
 from ui.grpcurl_page import GrpcUrlView, ProtosetParser, GrpcCallPresenter
 from ui.curl_page import CurlView
 from ui.environments_page import EnvironVarView, EnvironmentRepo, EnvironmentPresenter
 from ui.automations_page import AutomationsView
-from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
 import tkinter as tk
 import feature_flags as flag
@@ -36,16 +34,12 @@ class MainView(tk.Tk):
         self.grpcurl_page.set_environment_options(self.model.get_all_environment_names())
 
 if __name__ == "__main__":
-    grpc_caller = GrpcCaller()
     protoset_parser = ProtosetParser()
-    saved_calls_manager = SavedGrpcManager("data/grpc_calls.json")
     main_view = MainView()
     
     # First, create the gRPC presenter.
     grpc_presenter = GrpcCallPresenter(
         main_view.grpcurl_page,
-        grpc_caller,
-        saved_calls_manager,
         protoset_parser,
         main_view.model
     )
