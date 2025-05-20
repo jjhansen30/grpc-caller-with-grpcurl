@@ -4,8 +4,187 @@ import tkinter as tk
 import re
 from tkinter import ttk
 
+# View: Displays the UI and exposes methods for data access and update.
+class EnvironVarView(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.presenter = None
+        # Now storing tuples (container, entry) for later access and destruction.
+        self.variable_entries = []
+        self.value_entries = []
+        self._setup_ui()
+
+    def _create_entry_with_clear(self, parent, justify="left"):
+        """
+        Create a container holding an Entry widget and a clear label (X).
+        When the clear label is clicked, the entry text is cleared.
+        """
+        container = ttk.Frame(parent)
+        container.columnconfigure(0, weight=1)
+        entry = ttk.Entry(container, justify=justify)
+        entry.grid(row=0, column=0, sticky="ew")
+        clear_label = ttk.Label(container, text="x", foreground="red", cursor="hand2")
+        clear_label.grid(row=0, column=1, padx=(5, 0))
+        clear_label.bind("<Button-1>", lambda e: entry.delete(0, tk.END))
+        return container, entry
+
+    def _setup_ui(self):
+        main_container = ttk.Frame(self)
+        main_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Left side: Environment list box.
+        environment_frame = ttk.Frame(main_container)
+        environment_frame.pack(side=tk.LEFT, fill=tk.BOTH)
+        ttk.Label(environment_frame, text="Environments").pack(anchor=tk.W)
+        self.env_list_box = tk.Listbox(environment_frame)
+        self.env_list_box.pack(fill=tk.BOTH, expand=True)
+        self.env_list_box.bind("<<ListboxSelect>>", self.on_listbox_select)
+
+        # Right side: Environment and variable entries.
+        self.var_config_frame = ttk.Frame(main_container)
+        self.var_config_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=8)
+        # We need 3 columns now (first two for entries, third for button arrangement).
+        self.var_config_frame.columnconfigure(0, weight=1)
+        self.var_config_frame.columnconfigure(1, weight=1)
+        self.var_config_frame.columnconfigure(2, weight=1)
+
+        # Environment Name label and entry.
+        ttk.Label(self.var_config_frame, text="Environment Name", anchor="center") \
+            .grid(row=0, column=0, columnspan=3, pady=(5,2))
+        self.env_container = ttk.Entry(self.var_config_frame, justify="center")
+        self.env_container.grid(row=1, column=0, columnspan=3, pady=(0,10))
+
+        # Configure a style for red text.
+        style = ttk.Style()
+        style.configure("Red.TLabel", foreground="red")
+
+        # Delete button.
+        self.edit_button = ttk.Label(self.var_config_frame, text="Delete Environment",
+                                     cursor="hand2", style="Red.TLabel")
+        self.edit_button.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(0,10))
+        self.edit_button.bind("<Button-1>", self.clear_variable_entries)
+
+        # Variable configuration headers.
+        ttk.Label(self.var_config_frame, text="Variable").grid(row=3, column=0, sticky="ew")
+        ttk.Label(self.var_config_frame, text="Value").grid(row=3, column=1, sticky="ew")
+
+        # Initial row for variable configuration.
+        initial_row = 4
+        var_container, var_entry = self._create_entry_with_clear(self.var_config_frame)
+        var_container.grid(row=initial_row, column=0, sticky="ew")
+        self.variable_entries.append((var_container, var_entry))
+        val_container, val_entry = self._create_entry_with_clear(self.var_config_frame)
+        val_container.grid(row=initial_row, column=1, sticky="ew")
+        self.value_entries.append((val_container, val_entry))
+
+        # Set the starting row index for add row and save buttons.
+        self.add_button_row = 5
+
+        # Add row label (to add more variable rows).
+        self.add_row_label = ttk.Label(self.var_config_frame, text="+", cursor="hand2")
+        self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
+        self.add_row_label.bind("<Button-1>", self.add_row)
+
+        # Save button.
+        self.save_button = ttk.Label(self.var_config_frame, text="Save", cursor="hand2")
+        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
+
+        # Status label (below buttons).
+        # Use a high fixed row so that it doesn't get displaced as you add more variable rows.
+        self.status_label = ttk.Label(self.var_config_frame, text="")
+        self.status_label.grid(row=100, column=0, columnspan=3, sticky="ew", pady=(10,0))
+
+    def add_row(self, event):
+        # Create a new row of variable and value entries.
+        row_to_add = self.add_button_row
+        var_container, var_entry = self._create_entry_with_clear(self.var_config_frame)
+        var_container.grid(row=row_to_add, column=0, sticky="ew")
+        self.variable_entries.append((var_container, var_entry))
+        val_container, val_entry = self._create_entry_with_clear(self.var_config_frame)
+        val_container.grid(row=row_to_add, column=1, sticky="ew")
+        self.value_entries.append((val_container, val_entry))
+        
+        self.add_button_row += 1
+        # Re-grid the buttons so they move down to the next row.
+        self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
+        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
+
+    def on_listbox_select(self, event):
+        selection = self.env_list_box.curselection()
+        if selection and self.presenter:
+            index = selection[0]
+            env_name = self.env_list_box.get(index)
+            self.presenter.environment_selected(env_name)
+
+    def set_save_callback(self, callback):
+        self.save_button.bind("<Button-1>", callback)
+
+    def set_edit_callback(self, callback):
+        self.edit_button.bind("<Button-1>", callback)
+
+    def set_presenter(self, presenter):
+        self.presenter: EnvironmentPresenter = presenter
+
+    def get_environment_name(self):
+        return self.env_container.get().strip()
+
+    def get_variables(self):
+        # Retrieve variable and value pairs from the current rows.
+        variables = {}
+        for (var_container, var_entry), (val_container, val_entry) in zip(self.variable_entries, self.value_entries):
+            key = var_entry.get().strip()
+            val = val_entry.get().strip()
+            if key:
+                variables[key] = val
+        return variables
+
+    def update_list_box(self, env_names):
+        self.env_list_box.delete(0, tk.END)
+        for name in env_names:
+            self.env_list_box.insert(tk.END, name)
+
+    def clear_variable_entries(self, event=None):
+        # Remove current variable/value entry containers.
+        for container, _ in self.variable_entries:
+            container.destroy()
+        for container, _ in self.value_entries:
+            container.destroy()
+        self.variable_entries = []
+        self.value_entries = []
+
+    def populate_variables(self, var_dict):
+        # Remove any current variable entries.
+        self.clear_variable_entries()
+        # Starting row for variable entries (shifted down by one row to account for header rows).
+        row_index = 4
+        for key, value in var_dict.items():
+            var_container, var_entry = self._create_entry_with_clear(self.var_config_frame)
+            var_entry.insert(0, key)
+            var_container.grid(row=row_index, column=0, sticky="ew")
+            self.variable_entries.append((var_container, var_entry))
+            val_container, val_entry = self._create_entry_with_clear(self.var_config_frame)
+            val_entry.insert(0, value)
+            val_container.grid(row=row_index, column=1, sticky="ew")
+            self.value_entries.append((val_container, val_entry))
+            row_index += 1
+        # Reset the add row and save buttons to follow the last entry.
+        self.add_button_row = row_index
+        self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
+        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
+
+    # New method to update the environment name entry.
+    def set_environment_name(self, name):
+        self.env_container.delete(0, tk.END)
+        self.env_container.insert(0, name)
+
+    # New helper for showing status text that clears after 5s.
+    def set_status(self, message):
+        self.status_label.config(text=message)
+        # Clear after 5 seconds
+        self.status_label.after(5000, lambda: self.status_label.config(text=""))
+
 # Model: Handles JSON file operations.
-class EnvironmentModel:
+class EnvironmentRepo:
     def __init__(self, filename: str):
         self.filename = filename
         self.data = {}
@@ -40,172 +219,12 @@ class EnvironmentModel:
     def get_all_environment_names(self):
         return list(self.data.keys())
 
-# View: Displays the UI and exposes methods for data access and update.
-class EnvironVarView(ttk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.presenter = None
-        self.variable_entries = []
-        self.value_entries = []
-        self._setup_ui()
-
-    def _setup_ui(self):
-        main_container = ttk.Frame(self)
-        main_container.pack(fill=tk.BOTH, expand=True)
-        
-        # Left side: Environment list box.
-        environment_frame = ttk.Frame(main_container)
-        environment_frame.pack(side=tk.LEFT, fill=tk.BOTH)
-        ttk.Label(environment_frame, text="Environments").pack(anchor=tk.W)
-        self.env_list_box = tk.Listbox(environment_frame)
-        self.env_list_box.pack(fill=tk.BOTH, expand=True)
-        self.env_list_box.bind("<<ListboxSelect>>", self.on_listbox_select)
-
-        # Right side: Environment and variable entries.
-        self.var_config_frame = ttk.Frame(main_container)
-        self.var_config_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=8)
-        # We need 3 columns now (Variable, Value, then an extra for the button arrangement).
-        self.var_config_frame.columnconfigure(0, weight=1)
-        self.var_config_frame.columnconfigure(1, weight=1)
-        self.var_config_frame.columnconfigure(2, weight=1)
-
-        # Environment Name label and entry.
-        ttk.Label(self.var_config_frame, text="Environment Name", anchor="center") \
-            .grid(row=0, column=0, columnspan=3, pady=(5,2))
-        self.env_entry = ttk.Entry(self.var_config_frame, justify="center")
-        self.env_entry.grid(row=1, column=0, columnspan=3, pady=(0,10))
-
-        # Configure a style for red text.
-        style = ttk.Style()
-        style.configure("Red.TLabel", foreground="red")
-
-        # Delete button.
-        self.edit_button = ttk.Label(self.var_config_frame, text="Delete Environment",
-                                     cursor="hand2", style="Red.TLabel")
-        self.edit_button.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(0,10))
-        self.edit_button.bind("<Button-1>", self.clear_variable_entries)
-
-        # Variable configuration headers.
-        ttk.Label(self.var_config_frame, text="Variable").grid(row=3, column=0, sticky="ew")
-        ttk.Label(self.var_config_frame, text="Value").grid(row=3, column=1, sticky="ew")
-
-        # Initial row for variable configuration.
-        var_entry = ttk.Entry(self.var_config_frame)
-        var_entry.grid(row=4, column=0, sticky="ew")
-        self.variable_entries.append(var_entry)
-        val_entry = ttk.Entry(self.var_config_frame)
-        val_entry.grid(row=4, column=1, sticky="ew")
-        self.value_entries.append(val_entry)
-
-        # Set the starting row index for add row and save buttons.
-        self.add_button_row = 5
-
-        # Add row label (to add more variable rows).
-        self.add_row_label = ttk.Label(self.var_config_frame, text="+", cursor="hand2")
-        self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
-        self.add_row_label.bind("<Button-1>", self.add_row)
-
-        # Save button.
-        self.save_button = ttk.Label(self.var_config_frame, text="Save", cursor="hand2")
-        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
-
-        # Status label (below buttons).
-        # Use a high fixed row so that it doesn't get displaced as you add more variable rows.
-        self.status_label = ttk.Label(self.var_config_frame, text="")
-        self.status_label.grid(row=100, column=0, columnspan=3, sticky="ew", pady=(10,0))
-
-    def add_row(self, event):
-        # Create a new row of variable and value entries.
-        row_to_add = self.add_button_row
-        var_entry = ttk.Entry(self.var_config_frame)
-        var_entry.grid(row=row_to_add, column=0, sticky="ew")
-        self.variable_entries.append(var_entry)
-        val_entry = ttk.Entry(self.var_config_frame)
-        val_entry.grid(row=row_to_add, column=1, sticky="ew")
-        self.value_entries.append(val_entry)
-        
-        self.add_button_row += 1
-        # Re-grid the buttons so they move down to the next row.
-        self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
-        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
-
-    def on_listbox_select(self, event):
-        selection = self.env_list_box.curselection()
-        if selection and self.presenter:
-            index = selection[0]
-            env_name = self.env_list_box.get(index)
-            self.presenter.environment_selected(env_name)
-
-    def set_save_callback(self, callback):
-        self.save_button.bind("<Button-1>", callback)
-
-    def set_edit_callback(self, callback):
-        self.edit_button.bind("<Button-1>", callback)
-
-    def set_presenter(self, presenter):
-        self.presenter: EnvironmentPresenter = presenter
-
-    def get_environment_name(self):
-        return self.env_entry.get().strip()
-
-    def get_variables(self):
-        # Retrieve variable and value pairs from the current rows.
-        variables = {}
-        for var_entry, val_entry in zip(self.variable_entries, self.value_entries):
-            key = var_entry.get().strip()
-            val = val_entry.get().strip()
-            if key:
-                variables[key] = val
-        return variables
-
-    def update_list_box(self, env_names):
-        self.env_list_box.delete(0, tk.END)
-        for name in env_names:
-            self.env_list_box.insert(tk.END, name)
-
-    def clear_variable_entries(self, event=None):
-        # Remove current variable/value entry widgets.
-        for widget in self.variable_entries + self.value_entries:
-            widget.destroy()
-        self.variable_entries = []
-        self.value_entries = []
-
-    def populate_variables(self, var_dict):
-        # Remove any current variable entries.
-        self.clear_variable_entries()
-        # Starting row for variable entries (shifted down by one row to account for header rows).
-        row_index = 4
-        for key, value in var_dict.items():
-            var_entry = ttk.Entry(self.var_config_frame)
-            var_entry.insert(0, key)
-            var_entry.grid(row=row_index, column=0, sticky="ew")
-            self.variable_entries.append(var_entry)
-            val_entry = ttk.Entry(self.var_config_frame)
-            val_entry.insert(0, value)
-            val_entry.grid(row=row_index, column=1, sticky="ew")
-            self.value_entries.append(val_entry)
-            row_index += 1
-        # Reset the add row and save buttons to follow the last entry.
-        self.add_button_row = row_index
-        self.add_row_label.grid(row=self.add_button_row, column=0, sticky="ew")
-        self.save_button.grid(row=self.add_button_row, column=2, sticky="ew")
-
-    # New method to update the environment name entry.
-    def set_environment_name(self, name):
-        self.env_entry.delete(0, tk.END)
-        self.env_entry.insert(0, name)
-
-    # New helper for showing status text that clears after 5s.
-    def set_status(self, message):
-        self.status_label.config(text=message)
-        # Clear after 5 seconds
-        self.status_label.after(5000, lambda: self.status_label.config(text=""))
-
 # Presenter: Mediates between the View and Model.
 class EnvironmentPresenter:
-    def __init__(self, view: EnvironVarView, model: EnvironmentModel):
+    def __init__(self, view: EnvironVarView, model: EnvironmentRepo, on_change_callback=None):
         self.view = view
         self.model = model
+        self.on_change_callback = on_change_callback
         self.view.set_presenter(self)
         self.view.set_save_callback(self.on_save)
         self.view.set_edit_callback(self.on_edit)
@@ -214,6 +233,8 @@ class EnvironmentPresenter:
     def update_environment_list(self):
         env_names = self.model.get_all_environment_names()
         self.view.update_list_box(env_names)
+        if self.on_change_callback:
+            self.on_change_callback(env_names)
 
     def on_save(self, event):
         env_name = self.view.get_environment_name()
@@ -226,7 +247,6 @@ class EnvironmentPresenter:
         self.view.set_status(f"Environment '{env_name}' saved!")
 
     def on_edit(self, event):
-        # Example: remove the selected environment. Adapt as needed for your “add/remove” logic.
         selection = self.view.env_list_box.curselection()
         if not selection:
             self.view.set_status("No environment selected to edit.")
@@ -258,7 +278,7 @@ class _MockParent(tk.Tk):
         self.notebook.add(self.environment_view, text="Environment Variables")
 
         # Instantiate the Model and Presenter.
-        self.model = EnvironmentModel(filename="data/environments.json")
+        self.model = EnvironmentRepo(filename="data/environments.json")
         self.presenter = EnvironmentPresenter(self.environment_view, self.model)
 
 def substitute_env_vars(text: str, env_vars: dict):

@@ -1,0 +1,83 @@
+[
+    {
+        "port_forward": "",
+        "cookie": "{{cookie}}",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "{{server_address}}",
+        "method": "climate.ClimatePublic.GetClimateDevices",
+        "body": "{\"system_id\": \"{{panid}}\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "{{cookie}}",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/google-sdm-public-proto/generated/google_sdm_public.protoset",
+        "server": "{{server_address}}",
+        "method": "googlesdmpublic.GoogleSdmPublicService.ConnectGoogleSDMToSystem",
+        "body": "{\"system_id\": \"{{panid}}\", \"external_id\": \"{{external_id}}\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "{{cookie}}",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "{{server_address}}",
+        "method": "climate.ClimatePublic.DeleteDevice",
+        "body": "{\"system_id\": \"{{panid}}\", \"device_id\": \"{{device_id}}\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "{{cookie}}",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "{{server_address}}",
+        "method": "climate.ClimatePublic.SetScheduleEnabled",
+        "body": "{\"system_id\": \"{{panid}}\", \"device_id\": \"{{device_id}}\", \"enabled\": \"true\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "{{cookie}}",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/google-sdm-public-proto/generated/google_sdm_public.protoset",
+        "server": "{{server_address}}",
+        "method": "googlesdmpublic.GoogleSdmPublicService.GetNestMapping",
+        "body": "{\"system_id\": \"{{panid}}\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "{{cookie}}",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "{{server_address}}",
+        "method": "climate.ClimatePublic.SetOperatingMode",
+        "body": "{\"system_id\": \"{{panid}}\", \"device_id\": \"{{device_id}}\", \"mode\": \"COOL\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "{{cookie}}",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "{{server_address}}",
+        "method": "climate.ClimatePublic.SetFanMode",
+        "body": "{\"system_id\": \"{{panid}}\", \"device_id\": \"{{device_id}}\", \"mode\": \"FORTY_FIVE_MINUTE\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "{{bearer_token}}",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/climateprotobuf/generated/climate_public.protoset",
+        "server": "{{server_address}}",
+        "method": "climate.ClimatePublic.SetCoolSetpoint",
+        "body": "{\"system_id\": \"{{panid}}\", \"device_id\": \"{{device_id}}\", \"fahrenheit\": \"74\"}"
+    },
+    {
+        "port_forward": "",
+        "cookie": "",
+        "bearer_token": "",
+        "protoset": "/Users/joshansen/repo/vivint/platform-testing/protos/protodef/rule/rule.protoset",
+        "server": "{{server_address}}",
+        "method": "Rules.EnsureCannedRoutines",
+        "body": "{\"system_id\": \"{{panid}}\"}"
+    }
+]

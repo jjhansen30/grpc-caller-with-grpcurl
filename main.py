@@ -1,9 +1,7 @@
-from network.grpc_caller import GrpcCaller
 from ui.grpcurl_page import GrpcUrlView, ProtosetParser, GrpcCallPresenter
 from ui.curl_page import CurlView
-from ui.environments_page import EnvironVarView, EnvironmentModel, EnvironmentPresenter
+from ui.environments_page import EnvironVarView, EnvironmentRepo, EnvironmentPresenter
 from ui.automations_page import AutomationsView
-from data.saved_grpc_manager import SavedGrpcManager
 from tkinter import ttk
 import tkinter as tk
 import feature_flags as flag
@@ -32,18 +30,25 @@ class MainView(tk.Tk):
             self.notebook.add(self.automations_page, text="Automations", padding=self.notebook_padding)
         self.notebook.add(self.environment_page, text="Environment variables", padding=self.notebook_padding)
 
-        self.model = EnvironmentModel("data/environments.json")
-        self.presenter = EnvironmentPresenter(self.environment_page, self.model)
-        
-        # --- Update grpcurl page drop down with Environment names ---
+        self.model = EnvironmentRepo("data/environments.json")
         self.grpcurl_page.set_environment_options(self.model.get_all_environment_names())
-        # -------------------------------------------------------------
 
 if __name__ == "__main__":
-    grpc_caller = GrpcCaller()
     protoset_parser = ProtosetParser()
-    saved_calls_manager = SavedGrpcManager("data/grpc_calls.json")
     main_view = MainView()
-    # Pass the EnvironmentModel instance to GrpcCallPresenter for variable substitution
-    GrpcCallPresenter(main_view.grpcurl_page, grpc_caller, saved_calls_manager, protoset_parser, main_view.model)
+    
+    # First, create the gRPC presenter.
+    grpc_presenter = GrpcCallPresenter(
+        main_view.grpcurl_page,
+        protoset_parser,
+        main_view.model
+    )
+    
+    # Then, create the Environment presenter and pass the gRPC presenter's refresh method as callback.
+    env_presenter = EnvironmentPresenter(
+        main_view.environment_page,
+        main_view.model,
+        on_change_callback=grpc_presenter.refresh_environment_options
+    )
+    
     main_view.mainloop()
