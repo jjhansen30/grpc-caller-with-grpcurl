@@ -5,7 +5,7 @@ import subprocess
 from tkinter import ttk
 from google.protobuf.descriptor import Descriptor
 from google.protobuf import descriptor_pb2
-from ui.environments_page import substitute_env_vars, EnvironmentRepo
+from environments_page import substitute_env_vars, EnvironmentRepo
 
 class GrpcCaller:
     """Handles construction and execution of the grpcurl command."""
